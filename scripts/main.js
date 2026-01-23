@@ -195,6 +195,8 @@ async function loadRobloxMaps(isPagesDir) {
             card.style.flexDirection = 'column';
             card.style.alignItems = 'center';
             card.style.justifyContent = 'center';
+            card.style.width = '100%';
+            card.style.maxWidth = '600px';
             
             card.addEventListener('mouseenter', () => card.style.transform = 'translateY(-5px)');
             card.addEventListener('mouseleave', () => card.style.transform = 'translateY(0)');

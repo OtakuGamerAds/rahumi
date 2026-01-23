@@ -84,6 +84,7 @@
             padding: 1rem;
             height: 100%;
             overflow: hidden;
+            width: 100%; /* Ensure full width of the grid cell */
         }
 
         .countdown-circle {
@@ -101,7 +102,7 @@
             font-size: 2rem;
             font-weight: bold;
             color: var(--primary-dark);
-            margin-bottom: 1rem;
+            margin: 0 auto 1rem auto; /* Explicit horizontal auto margin */
             background: var(--surface-color);
             box-shadow: var(--shadow-md);
         }
@@ -111,6 +112,7 @@
             color: var(--text-color);
             margin-bottom: 1rem;
             font-weight: bold;
+            width: 100%; /* Ensure text block takes width to centering works */
         }
 
         .continue-btn {
@@ -128,6 +130,7 @@
             cursor: pointer;
             animation: pulse 2s infinite;
             white-space: nowrap;
+            margin: 0 auto; /* Explicit horizontal auto margin */
         }
 
         .continue-btn:hover {
