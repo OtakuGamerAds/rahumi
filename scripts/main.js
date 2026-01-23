@@ -170,9 +170,10 @@ function generateNav(navItems, isPagesDir) {
     }
 }
 
+// Variables for pagination
 let currentMapsPage = 1;
 const mapsPerPage = 5;
-let allMapsData = {};
+let allMapsData = [];
 
 async function loadRobloxMaps(isPagesDir) {
     const grid = document.getElementById('maps-grid');
@@ -184,7 +185,7 @@ async function loadRobloxMaps(isPagesDir) {
         const response = await fetch(configPath);
         if (!response.ok) throw new Error('Failed to load links');
         
-        // Load data once
+        // Load data once - expect Array
         allMapsData = await response.json();
         
         // Initial render
@@ -196,6 +197,18 @@ async function loadRobloxMaps(isPagesDir) {
     }
 }
 
+function getYouTubeThumbnail(url) {
+    if (!url) return '';
+    // Handle youtube.com and youtu.be
+    let videoId = '';
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([^&]+)/);
+    if (match) {
+        videoId = match[1];
+        return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    }
+    return ''; // Placeholder or fallback?
+}
+
 function renderMapsPage() {
     const grid = document.getElementById('maps-grid');
     const paginationControls = document.getElementById('pagination-controls');
@@ -204,32 +217,91 @@ function renderMapsPage() {
     grid.innerHTML = '';
     paginationControls.innerHTML = '';
 
-    const entries = Object.entries(allMapsData);
-    const totalItems = entries.length;
+    const totalItems = allMapsData.length;
     const totalPages = Math.ceil(totalItems / mapsPerPage);
     
     // Calculate slice
     const startIndex = (currentMapsPage - 1) * mapsPerPage;
     const endIndex = startIndex + mapsPerPage;
-    const pageItems = entries.slice(startIndex, endIndex);
+    const pageItems = allMapsData.slice(startIndex, endIndex);
 
     // Render Items
-    pageItems.forEach(([key, url]) => {
+    pageItems.forEach(item => {
         const card = document.createElement('div');
         card.className = 'map-card';
+        // Remove padding from card to let image fill top
+        card.style.padding = '0'; 
+        card.style.overflow = 'hidden'; // For image rounding
         
-        card.addEventListener('click', () => {
-            window.location.href = `redirect.html?key=${encodeURIComponent(key)}`;
-        });
-        
-        const icon = document.createElement('i');
-        icon.className = 'fas fa-gamepad';
-        
+        // 1. Thumbnail
+        const thumbUrl = getYouTubeThumbnail(item.video_link);
+        if (thumbUrl) {
+            const imgContainer = document.createElement('div');
+            imgContainer.style.width = '100%';
+            imgContainer.style.height = '200px'; // Fixed height for consistency
+            imgContainer.style.overflow = 'hidden';
+            imgContainer.style.position = 'relative';
+
+            const img = document.createElement('img');
+            img.src = thumbUrl;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            imgContainer.appendChild(img);
+            
+            // Map Name overlay or below? User said "video thumbnail as an image of the whole thing"
+            // Let's put title below for clarity, or overlay. 
+            // User said "below it there should be 2 buttons".
+            // I'll put Title + Buttons in a content div below image.
+            card.appendChild(imgContainer);
+        }
+
+        const infoDiv = document.createElement('div');
+        infoDiv.style.padding = '1.5rem';
+        infoDiv.style.width = '100%';
+        infoDiv.style.display = 'flex';
+        infoDiv.style.flexDirection = 'column';
+        infoDiv.style.alignItems = 'center';
+        infoDiv.style.gap = '1rem';
+
+        // Title
         const title = document.createElement('h3');
-        title.textContent = key.replace(/_/g, ' '); 
-        
-        card.appendChild(icon);
-        card.appendChild(title);
+        title.textContent = item.map_name;
+        title.style.margin = '0';
+        infoDiv.appendChild(title);
+
+        // Buttons Container
+        const btnsDiv = document.createElement('div');
+        btnsDiv.style.display = 'flex';
+        btnsDiv.style.gap = '1rem';
+        btnsDiv.style.width = '100%';
+        btnsDiv.style.justifyContent = 'center';
+
+        // Watch Button
+        const watchBtn = document.createElement('a');
+        watchBtn.className = 'btn';
+        watchBtn.textContent = 'شاهد';
+        watchBtn.href = item.video_link;
+        watchBtn.target = '_blank';
+        watchBtn.style.backgroundColor = '#e74c3c'; // Youtube Red-ish
+        watchBtn.style.flex = '1';
+        watchBtn.style.textAlign = 'center';
+
+        // Play Button (Redirect)
+        const playBtn = document.createElement('a');
+        playBtn.className = 'btn';
+        playBtn.textContent = 'العب';
+        // Use map_name as key. Ensure uniqueness or handle collision in real app.
+        // Encoder might encode spacing, which is fine.
+        playBtn.href = `redirect.html?key=${encodeURIComponent(item.map_name)}`;
+        playBtn.style.flex = '1';
+        playBtn.style.textAlign = 'center';
+
+        btnsDiv.appendChild(watchBtn);
+        btnsDiv.appendChild(playBtn);
+        infoDiv.appendChild(btnsDiv);
+
+        card.appendChild(infoDiv);
         grid.appendChild(card);
     });
 

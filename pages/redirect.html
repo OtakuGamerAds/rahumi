@@ -226,7 +226,17 @@
                 if (!response.ok) throw new Error('Config load failed');
                 const links = await response.json();
 
-                if (links[key]) {
+                if (Array.isArray(links)) {
+                    // New Array format
+                    // Decode key again just in case, though params handles it
+                    const target = links.find(item => item.map_name === key);
+                    if (target) {
+                         startCountdown(target.map_link);
+                    } else {
+                        showError();
+                    }
+                } else if (links[key]) {
+                    // Legacy Object format fallback
                     startCountdown(links[key]);
                 } else {
                     showError();

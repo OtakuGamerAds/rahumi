@@ -1,25 +1,32 @@
-{
-  "instagram": "https://instagram.com/omg.sama",
-  "test": "https://google.com",
-  "hide_and_shoot": "https://www.roblox.com/games/138380748628693/Hide-Shoot",
-  "test_map_1": "https://google.com",
-  "test_map_2": "https://google.com",
-  "test_map_3": "https://google.com",
-  "test_map_4": "https://google.com",
-  "test_map_5": "https://google.com",
-  "test_map_6": "https://google.com",
-  "test_map_7": "https://google.com",
-  "test_map_8": "https://google.com",
-  "test_map_9": "https://google.com",
-  "test_map_10": "https://google.com",
-  "test_map_11": "https://google.com",
-  "test_map_12": "https://google.com",
-  "test_map_13": "https://google.com",
-  "test_map_14": "https://google.com",
-  "test_map_15": "https://google.com",
-  "test_map_16": "https://google.com",
-  "test_map_17": "https://google.com",
-  "test_map_18": "https://google.com",
-  "test_map_19": "https://google.com",
-  "test_map_20": "https://google.com"
-}
+[
+  {
+    "video_link": "https://youtu.be/68bT48EFkhU",
+    "map_name": "Kill Brainrots 🔪",
+    "map_link": "https://www.roblox.com/games/88596859903742/Kill-Brainrots"
+  },
+  {
+    "video_link": "https://youtu.be/dQw4w9WgXcQ",
+    "map_name": "Test Map 2",
+    "map_link": "https://google.com"
+  },
+  {
+    "video_link": "https://youtu.be/dQw4w9WgXcQ",
+    "map_name": "Test Map 3",
+    "map_link": "https://google.com"
+  },
+  {
+    "video_link": "https://youtu.be/dQw4w9WgXcQ",
+    "map_name": "Test Map 4",
+    "map_link": "https://google.com"
+  },
+  {
+    "video_link": "https://youtu.be/dQw4w9WgXcQ",
+    "map_name": "Test Map 5",
+    "map_link": "https://google.com"
+  },
+  {
+    "video_link": "https://youtu.be/dQw4w9WgXcQ",
+    "map_name": "Test Map 6",
+    "map_link": "https://google.com"
+  }
+]
