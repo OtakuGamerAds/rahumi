@@ -14,6 +14,7 @@ async function loadConfig() {
         
         populateContent(data);
         generateNav(data.nav, isPagesDir);
+        generateHomeNav(data.nav);
         
         if (window.location.pathname.includes('roblox.html')) {
             loadRobloxMaps(isPagesDir);
@@ -168,6 +169,30 @@ function generateNav(navItems, isPagesDir) {
             }
         });
     }
+}
+
+function generateHomeNav(navItems) {
+    const container = document.getElementById('home-nav-links');
+    if (!container) return;
+
+    container.innerHTML = '';
+    
+    navItems.forEach(item => {
+        const a = document.createElement('a');
+        a.href = item.url;
+        a.textContent = item.text;
+        a.className = 'btn';
+        a.style.width = '100%';
+        a.style.display = 'block';
+        a.style.textAlign = 'center';
+
+        // Add special animation class for Roblox link
+        if (item.url.includes('roblox.html')) {
+            a.classList.add('roblox-btn-animate');
+        }
+
+        container.appendChild(a);
+    });
 }
 
 // Variables for pagination
