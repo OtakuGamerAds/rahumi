@@ -170,42 +170,93 @@ function generateNav(navItems, isPagesDir) {
     }
 }
 
+let currentMapsPage = 1;
+const mapsPerPage = 5;
+let allMapsData = {};
+
 async function loadRobloxMaps(isPagesDir) {
     const grid = document.getElementById('maps-grid');
+    const paginationControls = document.getElementById('pagination-controls');
     if (!grid) return;
     
     try {
         const configPath = isPagesDir ? '../config/links.json' : 'config/links.json';
         const response = await fetch(configPath);
         if (!response.ok) throw new Error('Failed to load links');
-        const links = await response.json();
         
-        grid.innerHTML = '';
+        // Load data once
+        allMapsData = await response.json();
         
-        for (const [key, url] of Object.entries(links)) {
-            const card = document.createElement('div');
-            card.className = 'map-card';
-            
-            // On click, go to redirect page with key
-            card.addEventListener('click', () => {
-                window.location.href = `redirect.html?key=${encodeURIComponent(key)}`;
-            });
-            
-            // Icon
-            const icon = document.createElement('i');
-            icon.className = 'fas fa-gamepad';
-            
-            // Title
-            const title = document.createElement('h3');
-            title.textContent = key.replace(/_/g, ' '); 
-            
-            card.appendChild(icon);
-            card.appendChild(title);
-            grid.appendChild(card);
-        }
+        // Initial render
+        renderMapsPage();
         
     } catch (err) {
         console.error('Error loading maps:', err);
         grid.innerHTML = '<p>Failed to load maps.</p>';
+    }
+}
+
+function renderMapsPage() {
+    const grid = document.getElementById('maps-grid');
+    const paginationControls = document.getElementById('pagination-controls');
+    
+    // Clear current
+    grid.innerHTML = '';
+    paginationControls.innerHTML = '';
+
+    const entries = Object.entries(allMapsData);
+    const totalItems = entries.length;
+    const totalPages = Math.ceil(totalItems / mapsPerPage);
+    
+    // Calculate slice
+    const startIndex = (currentMapsPage - 1) * mapsPerPage;
+    const endIndex = startIndex + mapsPerPage;
+    const pageItems = entries.slice(startIndex, endIndex);
+
+    // Render Items
+    pageItems.forEach(([key, url]) => {
+        const card = document.createElement('div');
+        card.className = 'map-card';
+        
+        card.addEventListener('click', () => {
+            window.location.href = `redirect.html?key=${encodeURIComponent(key)}`;
+        });
+        
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-gamepad';
+        
+        const title = document.createElement('h3');
+        title.textContent = key.replace(/_/g, ' '); 
+        
+        card.appendChild(icon);
+        card.appendChild(title);
+        grid.appendChild(card);
+    });
+
+    // Render Controls
+    // Previous Button (< السابق)
+    if (currentMapsPage > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '< السابق';
+        prevBtn.className = 'btn'; 
+        prevBtn.onclick = () => {
+            currentMapsPage--;
+            renderMapsPage();
+            window.scrollTo(0, 0);
+        };
+        paginationControls.appendChild(prevBtn);
+    }
+
+    // Next Button (المزيد >)
+    if (currentMapsPage < totalPages) {
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = 'المزيد >';
+        nextBtn.className = 'btn';
+        nextBtn.onclick = () => {
+            currentMapsPage++;
+            renderMapsPage();
+            window.scrollTo(0, 0);
+        };
+        paginationControls.appendChild(nextBtn);
     }
 }
