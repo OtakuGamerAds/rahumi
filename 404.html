@@ -17,10 +17,13 @@
             color: #e0e0e0;
             min-height: 100vh;
             display: grid;
-            grid-template-rows: auto 1fr auto;
+            /* Header, Top Ad, Main Content (L+C+R), Bottom Ad, Footer */
+            grid-template-rows: auto auto 1fr auto auto; 
             grid-template-areas:
                 "header"
+                "top-ad"
                 "main"
+                "bottom-ad"
                 "footer";
         }
 
@@ -42,19 +45,19 @@
             background-clip: text;
         }
 
-        /* Main Grid Layout */
-        main {
-            grid-area: main;
-            display: grid;
-            grid-template-columns: 300px 1fr 300px;
-            gap: 1rem;
+        /* Top & Bottom Ad Banners */
+        .ad-banner {
+            background: #0f3460;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 1rem;
-            max-width: 100%;
-            height: 100%;
         }
 
-        /* Ad Slots */
-        .ad-slot {
+        .ad-banner-slot {
+            width: 100%;
+            max-width: 970px; /* Standard Leaderboard max */
+            height: 90px;
             background: rgba(255, 255, 255, 0.05);
             border: 2px dashed #666;
             border-radius: 8px;
@@ -63,20 +66,22 @@
             align-items: center;
             color: #666;
             font-weight: bold;
-            min-height: 250px;
         }
 
-        .ad-sidebar {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .ad-sidebar .ad-slot {
-            flex-grow: 1;
+        .top-ad-container { grid-area: top-ad; }
+        .bottom-ad-container { grid-area: bottom-ad; }
+
+        /* Main Grid Layout (Left, Content, Right) */
+        main {
+            grid-area: main;
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 1rem;
+            padding: 0 1rem;
+            max-width: 100%;
         }
 
-        /* Center Content */
+        /* Content Area in Main */
         .content-area {
             display: flex;
             flex-direction: column;
@@ -86,6 +91,29 @@
             padding: 2rem;
             background: rgba(22, 33, 62, 0.5);
             border-radius: 16px;
+            margin: 1rem 0; /* Vertical spacing from ads */
+        }
+
+        /* Sidebars */
+        .ad-sidebar {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; 
+            margin: 1rem 0;
+        }
+
+        .ad-sidebar-slot {
+            width: 100%;
+            height: 100%;
+            min-height: 400px; /* Tall sidebar ads */
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed #666;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #666;
+            font-weight: bold;
         }
 
         /* Footer */
@@ -100,9 +128,7 @@
         }
 
         /* Countdown Style */
-        .countdown-container {
-            margin-bottom: 2rem;
-        }
+        .countdown-container { margin-bottom: 2rem; }
 
         .countdown-circle {
             width: 120px;
@@ -136,18 +162,11 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
             transition: transform 0.2s, box-shadow 0.2s;
-            display: none; /* Hidden by default */
+            display: none;
             animation: pulse 2s infinite;
         }
-
-        .continue-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
-        }
-
-        .continue-btn:active {
-            transform: translateY(1px);
-        }
+        .continue-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4); }
+        .continue-btn:active { transform: translateY(1px); }
 
         .home-btn {
             background: #e94560;
@@ -160,44 +179,31 @@
             display: inline-block;
         }
 
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
 
         @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
-            }
-            70% {
-                box-shadow: 0 0 0 15px rgba(46, 204, 113, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
-            }
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
         }
 
         /* Responsive Design */
         @media (max-width: 900px) {
             main {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto auto;
-                gap: 2rem;
+                grid-template-columns: 1fr; /* Single column */
+                padding: 0 1rem;
             }
 
+            /* Hide Sidebars on Mobile to prevent stacking */
             .ad-sidebar {
-                height: 250px; /* Fixed height for stacked ads */
+                display: none;
             }
 
-            /* Order: Content first, then ads */
-            .content-area {
-                order: 1;
+            .ad-banner-slot {
+                height: 100px; /* Smaller height for mobile banners */
             }
-            .left-sidebar {
-                order: 2;
-            }
-            .right-sidebar {
-                order: 3;
-            }
+
+            /* Main Layout stays: Header -> Top Ad -> Content -> Bottom Ad -> Footer */
         }
     </style>
 </head>
@@ -207,15 +213,21 @@
         <div class="brand">OtakuGamerAds</div>
     </header>
 
+    <!-- Top Ad Banner -->
+    <div class="ad-banner top-ad-container">
+        <div class="ad-banner-slot">Top Ad Space</div>
+    </div>
+
+    <!-- Main Content Grid -->
     <main>
         <!-- Left Sidebar Ad -->
         <aside class="ad-sidebar left-sidebar">
-            <div class="ad-slot">Advertisement Space</div>
+            <div class="ad-sidebar-slot">Left Ad</div>
         </aside>
 
         <!-- Center Content -->
         <section class="content-area">
-            <!-- Loading State (Initial) -->
+            <!-- Loading State -->
             <div id="loading-state">
                 <p>Verifying link...</p>
             </div>
@@ -224,11 +236,6 @@
             <div id="timer-state" class="hidden">
                 <div class="countdown-circle" id="countdown">5</div>
                 <p class="status-text" id="status-text">Please wait...</p>
-                <br>
-                <!-- Top Ad Slot (Mobile/Desktop Content Ad) -->
-                <div class="ad-slot" style="width: 100%; height: 100px; max-width: 400px; min-height: 100px; margin: 1rem auto;">
-                    Ad Space
-                </div>
             </div>
 
             <!-- Button State -->
@@ -244,9 +251,14 @@
 
         <!-- Right Sidebar Ad -->
         <aside class="ad-sidebar right-sidebar">
-            <div class="ad-slot">Advertisement Space</div>
+            <div class="ad-sidebar-slot">Right Ad</div>
         </aside>
     </main>
+
+    <!-- Bottom Ad Banner -->
+    <div class="ad-banner bottom-ad-container">
+        <div class="ad-banner-slot">Bottom Ad Space</div>
+    </div>
 
     <footer>
         &copy; 2026 OtakuGamerAds. All rights reserved.
@@ -271,16 +283,11 @@
 
             // 1. Parse Slug
             let path = window.location.pathname;
-            
-            // Normalize path for GitHub Pages
             if (path.startsWith(repoName)) {
                 path = path.substring(repoName.length);
             }
-            
             let slug = path.replace(/^\//, "").replace(/\/+$/, "");
 
-            // If empty, redirect to home immediately? Or just show error?
-            // The prompt says "If slug is invalid... show message". Empty is effectively invalid for a redirector.
             if (!slug) {
                 showError();
                 return;
@@ -331,11 +338,10 @@
             }
 
             function showButton() {
-                countdownEl.style.display = 'none'; // distinct from hidden class, just structure
+                countdownEl.style.display = 'none'; 
                 statusTextEl.style.display = 'none';
-                continueBtn.style.display = 'block'; // Reveal button
+                continueBtn.style.display = 'block'; 
                 
-                // Add click listener
                 continueBtn.addEventListener('click', () => {
                    window.location.replace(destUrl);
                 });
