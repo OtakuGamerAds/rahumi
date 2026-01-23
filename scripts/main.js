@@ -61,14 +61,43 @@ function generateSocialLinks(links) {
     if (!container || !links) return;
 
     container.innerHTML = '';
+    
+    // Icon Mapping (FontAwesome classes)
+    const iconMap = {
+        'انستقرام': 'fab fa-instagram',
+        'تيكتوك': 'fab fa-tiktok',
+        'فيسبوك': 'fab fa-facebook-f',
+        'تويتش': 'fab fa-twitch',
+        'تويتر': 'fab fa-twitter',
+        'قناتي الأساسية': 'fab fa-youtube',
+        'قناتي السولو': 'fab fa-youtube',
+        'ايميل الاعلانات': 'fas fa-envelope' // Although we will filter it out, good to have
+    };
 
     for (const [key, value] of Object.entries(links)) {
         // Skip if not a string
         if (typeof value !== 'string') continue;
+        
+        // FILTER: Skip email from social buttons
+        if (key.includes('ايميل')) continue;
 
         const a = document.createElement('a');
         a.className = 'btn';
-        a.textContent = key; // The key is the title (e.g. "انستقرام")
+        a.style.display = 'flex';
+        a.style.alignItems = 'center';
+        a.style.gap = '0.5rem';
+        
+        // Add Icon if exists
+        const iconClass = iconMap[key];
+        if (iconClass) {
+            const i = document.createElement('i');
+            i.className = iconClass;
+            a.appendChild(i);
+        }
+
+        const span = document.createElement('span');
+        span.textContent = key;
+        a.appendChild(span);
         
         if (value.includes('@') && !value.startsWith('http')) {
              a.href = `mailto:${value}`;
