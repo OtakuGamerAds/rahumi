@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Redirecting</title>
     <style>
         * {
@@ -15,24 +15,16 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background: #0f3460;
             color: #e0e0e0;
-            min-height: 100vh;
+            height: 100vh; /* Force full viewport height */
+            width: 100vw;
+            overflow: hidden; /* Disable scrolling */
             display: grid;
-            /* Header, Top Ad, Main Content (L+C+R), Bottom Ad, Footer */
-            grid-template-rows: auto auto 1fr auto auto; 
+            /* Top Ad (fixed/auto), Main (flexible), Bottom Ad (fixed/auto) */
+            grid-template-rows: auto 1fr auto; 
             grid-template-areas:
-                "header"
                 "top-ad"
                 "main"
-                "bottom-ad"
-                "footer";
-        }
-
-        /* Header (Empty but keeps spacing if needed, or collapse) */
-        header {
-            grid-area: header;
-            background: #16213e;
-            padding: 0.5rem; /* Reduced padding since text is gone */
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                "bottom-ad";
         }
 
         /* Top & Bottom Ad Banners */
@@ -42,12 +34,15 @@
             justify-content: center;
             align-items: center;
             padding: 0.5rem;
+            width: 100%;
+            z-index: 10;
         }
 
         .ad-banner-slot {
             width: 100%;
             max-width: 970px;
-            height: 90px;
+            height: 90px; /* Target height, but can shrink if needed on tiny screens */
+            min-height: 50px;
             background: rgba(255, 255, 255, 0.05);
             border: 2px dashed #666;
             border-radius: 8px;
@@ -69,10 +64,39 @@
             grid-template-columns: 300px 1fr 300px;
             gap: 1rem;
             padding: 0 1rem;
-            max-width: 100%;
+            width: 100%;
+            height: 100%; /* Fill remaining space */
+            overflow: hidden;
+            align-items: center; /* Vertically center content/sidebars */
         }
 
-        /* Content Area in Main */
+        /* Sidebars */
+        .ad-sidebar {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; 
+            height: 100%;
+            max-height: 100%;
+            overflow: hidden;
+        }
+
+        .ad-sidebar-slot {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed #666;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #666;
+            font-weight: bold;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+        }
+
+        /* Content Area inside Main */
         .content-area {
             display: flex;
             flex-direction: column;
@@ -82,41 +106,8 @@
             padding: 1rem;
             background: rgba(22, 33, 62, 0.5);
             border-radius: 16px;
-            margin: 0.5rem 0;
-        }
-
-        /* Sidebars */
-        .ad-sidebar {
-            display: flex;
-            flex-direction: column;
-            justify-content: center; 
-            margin: 0.5rem 0;
-            overflow: hidden; /* Prevent overflow if ad content is too big */
-        }
-
-        .ad-sidebar-slot {
-            width: 100%;
-            height: 100%;
-            min-height: 400px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px dashed #666;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #666;
-            font-weight: bold;
-            writing-mode: vertical-rl; /* Vertical text for narrow slots */
-            text-orientation: mixed;
-            transform: rotate(180deg); /* Fix rotation if needed */
-        }
-
-        /* Footer */
-        footer {
-            grid-area: footer;
-            background: #16213e;
-            padding: 0.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 100%;
+            overflow-y: auto; /* Allow internal scrolling if content is absolutely massive, but main layout wont scroll */
         }
 
         /* Countdown Style */
@@ -161,6 +152,18 @@
         .continue-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4); }
         .continue-btn:active { transform: translateY(1px); }
 
+        .home-btn {
+            background: #e94560;
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 1rem;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+
         .hidden { display: none !important; }
 
         @keyframes pulse {
@@ -171,43 +174,56 @@
 
         /* Responsive Design */
         @media (max-width: 900px) {
+            /* Adjust Main Grid to give more space to ads vs content */
             main {
-                /* FORCE 3 Columns on Mobile: Left Ad | Content | Right Ad */
-                grid-template-columns: 50px 1fr 50px; 
+                /* Sidebars take 15%, Content takes remaining */
+                grid-template-columns: 15vw 1fr 15vw; 
                 gap: 0.5rem;
                 padding: 0 0.5rem;
             }
 
-            .ad-sidebar {
-                display: flex; /* Show sidebars */
-            }
-
-            .ad-sidebar-slot {
-                min-height: 200px; /* Shorter sidebars on mobile if needed */
-                font-size: 0.7rem;      
+            .ad-banner {
+                padding: 0.25rem;
             }
 
             .ad-banner-slot {
-                height: 60px; /* Thinner top/bottom ads */
+                /* Dynamically resize height based on viewport height to avoid crowding */
+                height: 10vh; 
+                max-height: 90px;
+                min-height: 50px;
+                font-size: 0.7rem;
             }
 
-            .content-area {
-                padding: 1rem 0.5rem;
+            .ad-sidebar-slot {
+                font-size: 0.7rem;      
             }
-            
+
+            /* Adjust content scaling */
             .countdown-circle {
-                width: 80px;
-                height: 80px;
+                width: 15vw;
+                height: 15vw;
+                max-width: 100px;
+                max-height: 100px;
+                min-width: 60px;
+                min-height: 60px;
                 font-size: 2rem;
             }
+
+            .continue-btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+        
+        /* Deep Mobile adjustment (very small screens) */
+        @media (max-height: 600px) {
+             .ad-banner-slot { height: 50px; }
+             .countdown-circle { width: 60px; height: 60px; font-size: 1.5rem; margin-bottom: 0.5rem; }
+             .content-area { padding: 0.5rem; }
         }
     </style>
 </head>
 <body>
-
-    <header>
-        <!-- Branding Removed -->
-    </header>
 
     <!-- Top Ad Banner -->
     <div class="ad-banner top-ad-container">
@@ -240,7 +256,7 @@
             <!-- Error State -->
             <div id="error-state" class="hidden">
                 <h3 style="color: #e94560; margin-bottom: 0.5rem;">Expired</h3>
-                <a href="/redirect/index.html" class="home-btn" id="home-link" style="font-size: 0.9rem; padding: 0.5rem 1rem;">Home</a>
+                <a href="/redirect/index.html" class="home-btn" id="home-link">Home</a>
             </div>
         </section>
 
@@ -254,10 +270,6 @@
     <div class="ad-banner bottom-ad-container">
         <div class="ad-banner-slot">Bottom</div>
     </div>
-
-    <footer>
-        <!-- Copyright Removed -->
-    </footer>
 
     <script>
         (function () {
@@ -281,7 +293,6 @@
             }
             let slug = path.replace(/^\//, "").replace(/\/+$/, "");
 
-            // Fetch Links
             if (!slug) {
                 showError();
                 return;
