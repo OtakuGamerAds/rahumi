@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+    <script>
+      (function () {
+        const repoName = "/redirect";
+        let path = window.location.pathname;
+
+        // Strip the repoName from the start of the path
+        if (path.startsWith(repoName)) {
+          path = path.substring(repoName.length);
+        }
+
+        // Remove leading slash to get the slug
+        let slug = path.replace(/^\//, "");
+
+        // Remove trailing slashes
+        slug = slug.replace(/\/+$/, "");
+
+        // If slug is empty, redirect to home
+        if (!slug) {
+          window.location.replace(repoName + "/index.html");
+          return;
+        }
+
+        // Fetch links.json and redirect
+        fetch(repoName + "/links.json")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Failed to fetch links.json");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data[slug]) {
+              window.location.replace(data[slug]);
+            } else {
+              // Slug not found, redirect to home
+              window.location.replace(repoName + "/index.html");
+            }
+          })
+          .catch((error) => {
+            console.error("Redirect error:", error);
+            window.location.replace(repoName + "/index.html");
+          });
+      })();
+    </script>
+  </body>
+</html>
