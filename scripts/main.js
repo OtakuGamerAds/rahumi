@@ -184,22 +184,7 @@ async function loadRobloxMaps(isPagesDir) {
         
         for (const [key, url] of Object.entries(links)) {
             const card = document.createElement('div');
-            card.style.background = 'white';
-            card.style.padding = '2rem';
-            card.style.borderRadius = '12px';
-            card.style.boxShadow = 'var(--shadow-sm)';
-            card.style.transition = 'transform 0.2s';
-            card.style.cursor = 'pointer';
-            card.style.border = '1px solid #eee';
-            card.style.display = 'flex';
-            card.style.flexDirection = 'column';
-            card.style.alignItems = 'center';
-            card.style.justifyContent = 'center';
-            card.style.width = '100%';
-            card.style.maxWidth = '600px';
-            
-            card.addEventListener('mouseenter', () => card.style.transform = 'translateY(-5px)');
-            card.addEventListener('mouseleave', () => card.style.transform = 'translateY(0)');
+            card.className = 'map-card';
             
             // On click, go to redirect page with key
             card.addEventListener('click', () => {
@@ -209,15 +194,10 @@ async function loadRobloxMaps(isPagesDir) {
             // Icon
             const icon = document.createElement('i');
             icon.className = 'fas fa-gamepad';
-            icon.style.fontSize = '2rem';
-            icon.style.color = 'var(--primary-color)';
-            icon.style.marginBottom = '1rem';
             
             // Title
             const title = document.createElement('h3');
             title.textContent = key.replace(/_/g, ' '); 
-            title.style.textTransform = 'capitalize';
-            title.style.color = 'var(--text-color)';
             
             card.appendChild(icon);
             card.appendChild(title);

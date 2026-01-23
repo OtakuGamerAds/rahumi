@@ -133,3 +133,51 @@ footer p {
         display: block;
     }
 }
+
+/* Roblox Maps Styles */
+.maps-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 2rem;
+    width: 100%;
+}
+
+.map-card {
+    background: var(--surface-color);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0 auto; /* Center if max-width is hit */
+}
+
+@media (min-width: 768px) {
+    .map-card {
+        max-width: 700px; /* Limit width on larger screens */
+    }
+}
+
+.map-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.map-card i {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.map-card h3 {
+    text-transform: capitalize;
+    color: var(--text-color);
+    margin: 0;
+}
