@@ -178,17 +178,23 @@ function generateHomeNav(navItems) {
     container.innerHTML = '';
     
     navItems.forEach(item => {
+        // Skip "Home" button for homepage nav
+        if (item.url === 'index.html' || item.url === './') return;
+
         const a = document.createElement('a');
         a.href = item.url;
+        // Add text
         a.textContent = item.text;
+        
         a.className = 'btn';
         a.style.width = '100%';
         a.style.display = 'block';
         a.style.textAlign = 'center';
 
-        // Add special animation class for Roblox link
+        // Add special animation class for Roblox link + Joystick Emoji
         if (item.url.includes('roblox.html')) {
             a.classList.add('roblox-btn-animate');
+            a.innerHTML = `${item.text} <span style="margin-right: 0.5rem;">🎮</span>`;
         }
 
         container.appendChild(a);
@@ -307,7 +313,7 @@ function renderMapsPage() {
         // Watch Button
         const watchBtn = document.createElement('a');
         watchBtn.className = 'btn';
-        watchBtn.textContent = 'شاهد';
+        watchBtn.innerHTML = `شاهد <span style="margin-right: 0.5rem;">📺</span>`; // Watch Emoji
         watchBtn.href = item.video_link;
         watchBtn.target = '_blank';
         watchBtn.style.backgroundColor = '#e74c3c'; // Youtube Red-ish
@@ -317,7 +323,7 @@ function renderMapsPage() {
         // Play Button (Redirect)
         const playBtn = document.createElement('a');
         playBtn.className = 'btn';
-        playBtn.textContent = 'العب';
+        playBtn.innerHTML = `العب <span style="margin-right: 0.5rem;">🎮</span>`; // Joystick Emoji
         // Use map_name as key. Ensure uniqueness or handle collision in real app.
         // Encoder might encode spacing, which is fine.
         playBtn.href = `redirect.html?key=${encodeURIComponent(item.map_name)}`;
