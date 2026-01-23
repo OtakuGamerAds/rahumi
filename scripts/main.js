@@ -89,6 +89,8 @@ function generateSocialLinks(links) {
         a.style.display = 'flex';
         a.style.alignItems = 'center';
         a.style.gap = '0.5rem';
+        a.style.width = '100%'; // Full width in the column
+        a.style.justifyContent = 'center'; // Center text/icon
         
         // Add Icon if exists
         if (iconMap[key]) {
