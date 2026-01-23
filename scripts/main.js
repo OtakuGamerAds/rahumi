@@ -50,14 +50,7 @@ function populateContent(data) {
         }
     });
 
-    // Special case for email in contact page (if generic handling didn't catch it or for specific formatting)
-    // Manually setting it to ensure it works even if the generic handler missed it due to key mismatch
-    const emailLink = document.getElementById('ads-email-link');
-    if (emailLink && data.links['ايميل الاعلانات']) {
-        emailLink.href = `mailto:${data.links['ايميل الاعلانات']}`;
-        emailLink.textContent = data.links['ايميل الاعلانات'];
-    }
-    
+
     generateSocialLinks(data.links);
 }
 
@@ -67,7 +60,8 @@ function generateSocialLinks(links) {
 
     container.innerHTML = '';
     
-    // Icon Mapping (FontAwesome classes)
+    // Icon Mapping
+    // Ensure these match the JSON keys EXACTLY
     const iconMap = {
         'انستقرام': 'fab fa-instagram',
         'تيكتوك': 'fab fa-tiktok',
@@ -75,16 +69,15 @@ function generateSocialLinks(links) {
         'تويتش': 'fab fa-twitch',
         'تويتر': 'fab fa-twitter',
         'قناتي الأساسية': 'fab fa-youtube',
-        'قناتي السولو': 'fab fa-youtube',
-        'ايميل الاعلانات': 'fas fa-envelope' // Although we will filter it out, good to have
+        'قناتي السولو': 'fab fa-youtube'
     };
 
     for (const [key, value] of Object.entries(links)) {
         // Skip if not a string
         if (typeof value !== 'string') continue;
         
-        // FILTER: Skip email from social buttons
-        if (key.includes('ايميل')) continue;
+        // FILTER: Skip email from social buttons (using the clean key 'ads_email')
+        if (key === 'ads_email') continue;
 
         const a = document.createElement('a');
         a.className = 'btn';
@@ -93,10 +86,9 @@ function generateSocialLinks(links) {
         a.style.gap = '0.5rem';
         
         // Add Icon if exists
-        const iconClass = iconMap[key];
-        if (iconClass) {
+        if (iconMap[key]) {
             const i = document.createElement('i');
-            i.className = iconClass;
+            i.className = iconMap[key];
             a.appendChild(i);
         }
 
@@ -104,12 +96,8 @@ function generateSocialLinks(links) {
         span.textContent = key;
         a.appendChild(span);
         
-        if (value.includes('@') && !value.startsWith('http')) {
-             a.href = `mailto:${value}`;
-        } else {
-             a.href = value;
-             a.target = '_blank';
-        }
+        a.href = value;
+        a.target = '_blank';
         
         container.appendChild(a);
     }
