@@ -327,6 +327,7 @@ function renderMapsPage() {
         // Use map_name as key. Ensure uniqueness or handle collision in real app.
         // Encoder might encode spacing, which is fine.
         playBtn.href = `redirect.html?key=${encodeURIComponent(item.map_name)}`;
+        playBtn.target = '_blank'; // Open in new tab
         playBtn.style.flex = '1';
         playBtn.style.textAlign = 'center';
 
