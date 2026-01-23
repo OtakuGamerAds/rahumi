@@ -206,25 +206,80 @@ let currentMapsPage = 1;
 const mapsPerPage = 5;
 let allMapsData = [];
 
+const CONFIG_FILES = {
+    'main': 'config/links_main.json',
+    'extra': 'config/links_extra.json'
+};
+
+let currentChannel = 'extra'; // Default to extra as requested
+
 async function loadRobloxMaps(isPagesDir) {
     const grid = document.getElementById('maps-grid');
-    const paginationControls = document.getElementById('pagination-controls');
     if (!grid) return;
     
+    // Set initial active state for buttons if they exist
+    updateChannelButtons();
+
+    await fetchAndRenderMaps(isPagesDir);
+}
+
+async function fetchAndRenderMaps(isPagesDir) {
+    const grid = document.getElementById('maps-grid');
+    if (!grid) return;
+
+    grid.innerHTML = '<p style="text-align:center; width:100%;">Loading...</p>';
+    
     try {
-        const configPath = isPagesDir ? '../config/links.json' : 'config/links.json';
+        const configFile = CONFIG_FILES[currentChannel];
+        const configPath = isPagesDir ? `../${configFile}` : configFile;
+        
         const response = await fetch(configPath);
         if (!response.ok) throw new Error('Failed to load links');
         
-        // Load data once - expect Array
         allMapsData = await response.json();
         
-        // Initial render
+        // Reset page on channel switch
+        currentMapsPage = 1;
         renderMapsPage();
         
     } catch (err) {
         console.error('Error loading maps:', err);
         grid.innerHTML = '<p>Failed to load maps.</p>';
+        // Clear pagination if error
+        const paginationControls = document.getElementById('pagination-controls');
+        if (paginationControls) paginationControls.innerHTML = '';
+    }
+}
+
+function switchChannel(channel) {
+    if (currentChannel === channel) return;
+    currentChannel = channel;
+    updateChannelButtons();
+    
+    // Determine path context
+    const isPagesDir = window.location.pathname.includes('/pages/');
+    fetchAndRenderMaps(isPagesDir);
+}
+
+function updateChannelButtons() {
+    const mainBtn = document.getElementById('btn-channel-main');
+    const extraBtn = document.getElementById('btn-channel-extra');
+    
+    if (mainBtn && extraBtn) {
+        // Reset styles
+        mainBtn.classList.remove('active-channel');
+        extraBtn.classList.remove('active-channel');
+        
+        // Define active style class in CSS or inline
+        // For now, let's use inline background color manipulation or a class if we had one.
+        // Let's assume we add a class or toggle style.
+        // Since we don't have CSS access right now, I'll toggle inline styles for simplicity/robustness match.
+        
+        const inactiveStyle = "background-color: var(--surface-color); color: var(--text-color); border: 1px solid var(--primary-color);";
+        const activeStyle = "background-color: var(--primary-color); color: white; border: 1px solid var(--primary-color);";
+        
+        mainBtn.style.cssText = currentChannel === 'main' ? activeStyle : inactiveStyle;
+        extraBtn.style.cssText = currentChannel === 'extra' ? activeStyle : inactiveStyle;
     }
 }
 
