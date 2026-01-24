@@ -8,3 +8,7 @@
 
 # Firebase config (contains API keys)
 scripts/firebase-config.js
+
+# Functions dependencies
+functions/node_modules/
+
