@@ -698,7 +698,7 @@
             card.innerHTML = `
                 <div class="drag-handle">☰</div>
                 <div class="map-card-content">
-                    <h3 class="editable-title" title="Click to edit">${escapeHtml(map.map_name || 'Unnamed')} <span style="font-size: 0.8rem; opacity: 0.5;">(✎)</span></h3>
+                    <h3 class="editable-title" title="Click to edit">${escapeHtml(map.map_name || 'Unnamed')}</h3>
                     <div class="links">
                         <a href="${escapeHtml(map.video_link)}" target="_blank">📹 Video</a>
                         <a href="${escapeHtml(map.map_link)}" target="_blank">🎮 Roblox</a>
@@ -756,11 +756,13 @@
             addModal.classList.add('hidden');
         });
 
+        /*
         addModal.addEventListener('click', (e) => {
             if (e.target === addModal) {
                 addModal.classList.add('hidden');
             }
         });
+        */
 
         addForm.addEventListener('submit', (e) => {
             e.preventDefault();
