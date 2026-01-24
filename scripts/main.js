@@ -202,10 +202,12 @@ function generateHomeNav(navItems) {
     });
 }
 
-// Variables for pagination
-let currentMapsPage = 1;
-const mapsPerPage = 5;
+// Variables for infinite scroll
+let loadedCount = 0;
+const BATCH_SIZE = 10;
 let allMapsData = [];
+let observer = null;
+let isLoading = false;
 
 const CONFIG_FILE = 'config/links.json';
 
@@ -217,6 +219,7 @@ async function loadRobloxMaps(isPagesDir) {
     if (!grid) return;
     
     await fetchAndRenderMaps(isPagesDir);
+    setupIntersectionObserver();
 }
 
 async function fetchAndRenderMaps(isPagesDir) {
@@ -244,21 +247,168 @@ async function fetchAndRenderMaps(isPagesDir) {
         
         // Update selection UI
         updateChannelButtons();
-
-        // Get data for current channel
-        if (currentChannel) {
-            allMapsData = allMapsDataFull[currentChannel] || [];
-            currentMapsPage = 1;
-            renderMapsPage();
-        } else {
-            grid.innerHTML = '<p>No channels found.</p>';
-        }
+        
+        // Initial Render
+        resetAndRender();
         
     } catch (err) {
         console.error('Error loading maps:', err);
         grid.innerHTML = '<p>Failed to load maps.</p>';
-        const paginationControls = document.getElementById('pagination-controls');
-        if (paginationControls) paginationControls.innerHTML = '';
+    }
+}
+
+function resetAndRender() {
+    const grid = document.getElementById('maps-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = ''; // Clear existing content
+    loadedCount = 0;
+    
+    if (currentChannel && allMapsDataFull[currentChannel]) {
+        allMapsData = allMapsDataFull[currentChannel];
+        appendMaps(); // Load first batch
+    } else {
+        grid.innerHTML = '<p>No channels found.</p>';
+    }
+}
+
+function appendMaps() {
+    if (isLoading) return;
+    if (loadedCount >= allMapsData.length) return; // All loaded
+    
+    isLoading = true;
+    const grid = document.getElementById('maps-grid');
+    
+    // Calculate slice
+    const startIndex = loadedCount;
+    const endIndex = Math.min(loadedCount + BATCH_SIZE, allMapsData.length);
+    const batchItems = allMapsData.slice(startIndex, endIndex);
+    
+    // Render Items
+    batchItems.forEach(item => {
+        const card = createMapCard(item);
+        grid.appendChild(card);
+    });
+    
+    loadedCount += batchItems.length;
+    isLoading = false;
+    
+    // Provide visual feedback if we reached the end
+    if (loadedCount >= allMapsData.length) {
+        const endMsg = document.getElementById('end-of-list-msg');
+        if (!endMsg) {
+             const p = document.createElement('p');
+             p.id = 'end-of-list-msg';
+             p.textContent = 'No more maps to load.';
+             p.style.textAlign = 'center';
+             p.style.width = '100%';
+             p.style.padding = '2rem';
+             p.style.color = 'var(--text-light)';
+             grid.parentNode.appendChild(p);
+        }
+    }
+}
+
+function createMapCard(item) {
+    const card = document.createElement('div');
+    card.className = 'map-card';
+    card.style.padding = '0'; 
+    card.style.overflow = 'hidden'; 
+    
+    // 1. Thumbnail
+    const thumbUrl = getYouTubeThumbnail(item.video_link);
+    if (thumbUrl) {
+        const imgContainer = document.createElement('div');
+        imgContainer.style.width = '100%';
+        imgContainer.style.aspectRatio = '16 / 9'; 
+        imgContainer.style.overflow = 'hidden';
+        imgContainer.style.position = 'relative';
+
+        const img = document.createElement('img');
+        img.src = thumbUrl;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover'; 
+        imgContainer.appendChild(img);
+        
+        card.appendChild(imgContainer);
+    }
+
+    const infoDiv = document.createElement('div');
+    infoDiv.style.padding = '1.5rem';
+    infoDiv.style.width = '100%';
+    infoDiv.style.display = 'flex';
+    infoDiv.style.flexDirection = 'column';
+    infoDiv.style.alignItems = 'center';
+    infoDiv.style.gap = '1rem';
+
+    // Title
+    const title = document.createElement('h3');
+    title.textContent = item.map_name;
+    title.style.margin = '0';
+    infoDiv.appendChild(title);
+
+    // Buttons Container
+    const btnsDiv = document.createElement('div');
+    btnsDiv.style.display = 'flex';
+    btnsDiv.style.gap = '1rem';
+    btnsDiv.style.width = '100%';
+    btnsDiv.style.justifyContent = 'center';
+
+    // Watch Button
+    const watchBtn = document.createElement('a');
+    watchBtn.className = 'btn';
+    watchBtn.innerHTML = `شاهد <span style="margin-right: 0.5rem;">📺</span>`; 
+    watchBtn.href = item.video_link;
+    watchBtn.target = '_blank';
+    watchBtn.style.backgroundColor = '#e74c3c'; 
+    watchBtn.style.flex = '1';
+    watchBtn.style.textAlign = 'center';
+
+    // Play Button (Redirect)
+    const playBtn = document.createElement('a');
+    playBtn.className = 'btn';
+    playBtn.innerHTML = `العب <span style="margin-right: 0.5rem;">🎮</span>`; 
+    playBtn.href = `redirect.html?key=${encodeURIComponent(item.map_name)}`;
+    playBtn.target = '_blank'; 
+    playBtn.style.flex = '1';
+    playBtn.style.textAlign = 'center';
+
+    btnsDiv.appendChild(watchBtn);
+    btnsDiv.appendChild(playBtn);
+    infoDiv.appendChild(btnsDiv);
+
+    card.appendChild(infoDiv);
+    return card;
+}
+
+function setupIntersectionObserver() {
+    const options = {
+        root: null, // viewport
+        rootMargin: '0px',
+        threshold: 0.1
+    };
+    
+    observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                appendMaps();
+            }
+        });
+    }, options);
+    
+    // Create a sentinel element
+    const sentinel = document.createElement('div');
+    sentinel.id = 'scroll-sentinel';
+    sentinel.style.height = '20px';
+    sentinel.style.width = '100%';
+    
+    // Insert proper sentinel placement logic
+    // We want the sentinel to be AFTER the grid.
+    const grid = document.getElementById('maps-grid');
+    if (grid) {
+        grid.parentNode.appendChild(sentinel);
+        observer.observe(sentinel);
     }
 }
 
@@ -273,7 +423,6 @@ function renderChannelButtons() {
         btn.textContent = key;
         btn.className = 'btn';
         btn.style.transition = 'all 0.3s ease';
-        // Add data attribute for easier selection
         btn.dataset.channel = key;
         
         btn.onclick = () => switchChannel(key);
@@ -288,12 +437,11 @@ function switchChannel(channel) {
     
     updateChannelButtons();
     
-    // Update Grid Data
-    if (allMapsDataFull[currentChannel]) {
-        allMapsData = allMapsDataFull[currentChannel];
-        currentMapsPage = 1;
-        renderMapsPage();
-    }
+    // Remove "end of list" msg if exists
+    const endMsg = document.getElementById('end-of-list-msg');
+    if(endMsg) endMsg.remove();
+    
+    resetAndRender();
 }
 
 function updateChannelButtons() {
@@ -319,132 +467,5 @@ function getYouTubeThumbnail(url) {
         videoId = match[1];
         return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
     }
-    return ''; // Placeholder or fallback?
-}
-
-function renderMapsPage() {
-    const grid = document.getElementById('maps-grid');
-    const paginationControls = document.getElementById('pagination-controls');
-    
-    // Clear current
-    grid.innerHTML = '';
-    paginationControls.innerHTML = '';
-
-    const totalItems = allMapsData.length;
-    const totalPages = Math.ceil(totalItems / mapsPerPage);
-    
-    // Calculate slice
-    const startIndex = (currentMapsPage - 1) * mapsPerPage;
-    const endIndex = startIndex + mapsPerPage;
-    const pageItems = allMapsData.slice(startIndex, endIndex);
-
-    // Render Items
-    pageItems.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'map-card';
-        // Remove padding from card to let image fill top
-        card.style.padding = '0'; 
-        card.style.overflow = 'hidden'; // For image rounding
-        
-        // 1. Thumbnail
-        const thumbUrl = getYouTubeThumbnail(item.video_link);
-        if (thumbUrl) {
-            const imgContainer = document.createElement('div');
-            imgContainer.style.width = '100%';
-            // imgContainer.style.height = '200px'; // REMOVED fixed height
-            imgContainer.style.aspectRatio = '16 / 9'; // Force 16:9 ratio
-            imgContainer.style.overflow = 'hidden';
-            imgContainer.style.position = 'relative';
-
-            const img = document.createElement('img');
-            img.src = thumbUrl;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover'; // Cover is fine now if ratio matches, but contain/fill ensures no crop if container is perfect. 
-            // Since we set container to 16/9, and thumb is 16/9, cover is safe and handles slight variances.
-            imgContainer.appendChild(img);
-            
-            // Map Name overlay or below? User said "video thumbnail as an image of the whole thing"
-            // Let's put title below for clarity, or overlay. 
-            // User said "below it there should be 2 buttons".
-            // I'll put Title + Buttons in a content div below image.
-            card.appendChild(imgContainer);
-        }
-
-        const infoDiv = document.createElement('div');
-        infoDiv.style.padding = '1.5rem';
-        infoDiv.style.width = '100%';
-        infoDiv.style.display = 'flex';
-        infoDiv.style.flexDirection = 'column';
-        infoDiv.style.alignItems = 'center';
-        infoDiv.style.gap = '1rem';
-
-        // Title
-        const title = document.createElement('h3');
-        title.textContent = item.map_name;
-        title.style.margin = '0';
-        infoDiv.appendChild(title);
-
-        // Buttons Container
-        const btnsDiv = document.createElement('div');
-        btnsDiv.style.display = 'flex';
-        btnsDiv.style.gap = '1rem';
-        btnsDiv.style.width = '100%';
-        btnsDiv.style.justifyContent = 'center';
-
-        // Watch Button
-        const watchBtn = document.createElement('a');
-        watchBtn.className = 'btn';
-        watchBtn.innerHTML = `شاهد <span style="margin-right: 0.5rem;">📺</span>`; // Watch Emoji
-        watchBtn.href = item.video_link;
-        watchBtn.target = '_blank';
-        watchBtn.style.backgroundColor = '#e74c3c'; // Youtube Red-ish
-        watchBtn.style.flex = '1';
-        watchBtn.style.textAlign = 'center';
-
-        // Play Button (Redirect)
-        const playBtn = document.createElement('a');
-        playBtn.className = 'btn';
-        playBtn.innerHTML = `العب <span style="margin-right: 0.5rem;">🎮</span>`; // Joystick Emoji
-        // Use map_name as key. Ensure uniqueness or handle collision in real app.
-        // Encoder might encode spacing, which is fine.
-        playBtn.href = `redirect.html?key=${encodeURIComponent(item.map_name)}`;
-        playBtn.target = '_blank'; // Open in new tab
-        playBtn.style.flex = '1';
-        playBtn.style.textAlign = 'center';
-
-        btnsDiv.appendChild(watchBtn);
-        btnsDiv.appendChild(playBtn);
-        infoDiv.appendChild(btnsDiv);
-
-        card.appendChild(infoDiv);
-        grid.appendChild(card);
-    });
-
-    // Render Controls
-    // Previous Button (< السابق)
-    if (currentMapsPage > 1) {
-        const prevBtn = document.createElement('button');
-        prevBtn.textContent = '< السابق';
-        prevBtn.className = 'btn'; 
-        prevBtn.onclick = () => {
-            currentMapsPage--;
-            renderMapsPage();
-            window.scrollTo(0, 0);
-        };
-        paginationControls.appendChild(prevBtn);
-    }
-
-    // Next Button (المزيد >)
-    if (currentMapsPage < totalPages) {
-        const nextBtn = document.createElement('button');
-        nextBtn.textContent = 'المزيد >';
-        nextBtn.className = 'btn';
-        nextBtn.onclick = () => {
-            currentMapsPage++;
-            renderMapsPage();
-            window.scrollTo(0, 0);
-        };
-        paginationControls.appendChild(nextBtn);
-    }
+    return ''; 
 }
