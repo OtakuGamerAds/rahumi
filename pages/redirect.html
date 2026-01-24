@@ -220,25 +220,35 @@
             }
 
             try {
-                // Determine path to config
-                // Since this file is in /pages/, config is in ../config/
-                const response = await fetch('../config/links.json');
-                if (!response.ok) throw new Error('Config load failed');
-                const links = await response.json();
+                // Fetch both config files
+                const [mainRes, extraRes] = await Promise.all([
+                    fetch('../config/links_main.json'),
+                    fetch('../config/links_extra.json')
+                ]);
 
-                if (Array.isArray(links)) {
-                    // New Array format
-                    // Decode key again just in case, though params handles it
-                    const target = links.find(item => item.map_name === key);
+                let allLinks = [];
+
+                if (mainRes.ok) {
+                    const mainLinks = await mainRes.json();
+                    if (Array.isArray(mainLinks)) allLinks = allLinks.concat(mainLinks);
+                }
+                
+                if (extraRes.ok) {
+                    const extraLinks = await extraRes.json();
+                    if (Array.isArray(extraLinks)) allLinks = allLinks.concat(extraLinks);
+                }
+
+                if (allLinks.length > 0) {
+                    // Search in combined list
+                    const target = allLinks.find(item => item.map_name === key);
                     if (target) {
                          startCountdown(target.map_link);
                     } else {
+                        console.warn('Key not found:', key);
                         showError();
                     }
-                } else if (links[key]) {
-                    // Legacy Object format fallback
-                    startCountdown(links[key]);
                 } else {
+                    console.error('No links loaded');
                     showError();
                 }
             } catch (err) {

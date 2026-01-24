@@ -211,7 +211,7 @@ const CONFIG_FILES = {
     'extra': 'config/links_extra.json'
 };
 
-let currentChannel = 'extra'; // Default to extra as requested
+let currentChannel = 'main'; // Default to main as requested
 
 async function loadRobloxMaps(isPagesDir) {
     const grid = document.getElementById('maps-grid');
