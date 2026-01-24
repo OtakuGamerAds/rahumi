@@ -229,10 +229,13 @@ async function fetchAndRenderMaps(isPagesDir) {
     grid.innerHTML = '<p style="text-align:center; width:100%;">Loading...</p>';
     
     try {
+
         const configPath = (isPagesDir ? `../${CONFIG_FILE}` : CONFIG_FILE) + '?t=' + new Date().getTime();
         
+        console.log('Fetching maps from:', configPath);
+
         const response = await fetch(configPath);
-        if (!response.ok) throw new Error('Failed to load links');
+        if (!response.ok) throw new Error(`Failed to load links from ${configPath}: ${response.status} ${response.statusText}`);
         
         allMapsDataFull = await response.json();
         
@@ -253,7 +256,11 @@ async function fetchAndRenderMaps(isPagesDir) {
         
     } catch (err) {
         console.error('Error loading maps:', err);
-        grid.innerHTML = '<p>Failed to load maps.</p>';
+        grid.innerHTML = `<div style="text-align:center; padding: 2rem; color: red;">
+            <p><strong>Failed to load maps</strong></p>
+            <p>Error: ${err.message}</p>
+            <p>Please check console for more details.</p>
+        </div>`;
     }
 }
 
