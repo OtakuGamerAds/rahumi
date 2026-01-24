@@ -1,6 +1,28 @@
 {
-  "profile": {},
-  "links": {},
-  "contact": {},
-  "nav": []
+  "profile": {
+    "name": "رحومي - Rahumi",
+    "welcome_message": "مرحباً بك في موقع رحومي الرسمي",
+    "intro_text": "صانع محتوى، عاشق للألعاب، وشاب طموح.",
+    "avatar_url": "assets/images/rahumi_profile_picture.jpg",
+    "about_text": "تجمعنا لحظات روبلوكس و ماين كرافت وألعاب ثانية. تعالوا نمرح ونلعب سوية! تابعوني وخل نتونس أكثر! 🎮🕺🏻💥"
+  },
+  "links": {
+    "قناتي الأساسية": "https://youtube.com/@rahumi",
+    "قناتي السولو": "https://www.youtube.com/@RahumiExtra",
+    "انستقرام": "https://instagram.com/rahumi",
+    "تيكتوك": "https://tiktok.com/@rahumi",
+    "فيسبوك": "https://facebook.com/rahumi",
+    "تويتش": "https://twitch.tv/rahumi",
+    "تويتر": "https://twitter.com/rahumi",
+    "ads_email": "rahumi@ar-ad.com"
+  },
+  "contact": {
+    "ads_message": "فريقي الإعلاني سيكون سعيداً بالتواصل معكم."
+  },
+  "nav": [
+    { "text": "الرئيسية", "url": "index.html" },
+    { "text": "مواقع التواصل الاجتماعي", "url": "pages/about.html" },
+    { "text": "للإعلانات", "url": "pages/contact.html" },
+    { "text": "ألعاب روبلوكس", "url": "pages/roblox.html" }
+  ]
 }
