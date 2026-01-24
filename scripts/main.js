@@ -206,9 +206,11 @@ let currentMapsPage = 1;
 const mapsPerPage = 5;
 let allMapsData = [];
 
-const CONFIG_FILES = {
-    'main': 'config/links_main.json',
-    'extra': 'config/links_extra.json'
+const CONFIG_FILE = 'config/links.json';
+
+const CHANNEL_KEYS = {
+    'main': 'قناتي الأولى',
+    'extra': 'قناتي الثانية'
 };
 
 let currentChannel = 'main'; // Default to main as requested
@@ -230,13 +232,16 @@ async function fetchAndRenderMaps(isPagesDir) {
     grid.innerHTML = '<p style="text-align:center; width:100%;">Loading...</p>';
     
     try {
-        const configFile = CONFIG_FILES[currentChannel];
-        const configPath = isPagesDir ? `../${configFile}` : configFile;
+        const configPath = isPagesDir ? `../${CONFIG_FILE}` : CONFIG_FILE;
         
         const response = await fetch(configPath);
         if (!response.ok) throw new Error('Failed to load links');
         
-        allMapsData = await response.json();
+        const fullData = await response.json();
+        
+        // Get the specific list for the current channel
+        const channelKey = CHANNEL_KEYS[currentChannel];
+        allMapsData = fullData[channelKey] || [];
         
         // Reset page on channel switch
         currentMapsPage = 1;

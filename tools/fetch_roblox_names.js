@@ -115,15 +115,8 @@ async function fetchGameName(robloxUrl) {
   }
 }
 
-// Process a JSON file
-async function processJsonFile(filePath, forceUpdate = false) {
-  console.log(`\n${'='.repeat(60)}`);
-  console.log(`Processing: ${filePath}`);
-  console.log(`${'='.repeat(60)}`);
-
-  const links = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  console.log(`Loaded ${links.length} entries\n`);
-
+// Process a list of links
+async function processLinksList(links, forceUpdate = false) {
   let updated = 0;
   let failed = 0;
   let skipped = 0;
@@ -169,26 +162,39 @@ async function processJsonFile(filePath, forceUpdate = false) {
     // Rate limiting
     await new Promise(r => setTimeout(r, 300));
   }
+  return { updated, failed, skipped };
+}
 
-  fs.writeFileSync(filePath, JSON.stringify(links, null, 2));
-  
-  console.log(`\nUpdated: ${updated}, Failed: ${failed}, Skipped: ${skipped}`);
-  console.log(`Saved to: ${filePath}`);
+// Process the main links.json file
+async function processLinksFile(filePath, forceUpdate = false) {
+  console.log(`\n${'='.repeat(60)}`);
+  console.log(`Processing: ${filePath}`);
+  console.log(`${'='.repeat(60)}`);
+
+  const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  let totalUpdated = 0;
+
+  for (const [key, links] of Object.entries(data)) {
+    console.log(`\n--- Channel: ${key} ---`);
+    if (Array.isArray(links)) {
+      const { updated, failed, skipped } = await processLinksList(links, forceUpdate);
+      totalUpdated += updated;
+      console.log(`Section Result - Updated: ${updated}, Failed: ${failed}, Skipped: ${skipped}`);
+    } else {
+      console.warn(`Warning: Value for ${key} is not an array.`);
+    }
+  }
+
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  console.log(`\nSaved to: ${filePath}`);
 }
 
 async function main() {
   const args = process.argv.slice(2);
+  const configDir = path.join(__dirname, '..', 'config');
+  const linksFile = path.join(configDir, 'links.json');
   
-  if (args.length === 0) {
-    // Default files
-    const configDir = path.join(__dirname, '..', 'config');
-    await processJsonFile(path.join(configDir, 'links_main.json'));
-    await processJsonFile(path.join(configDir, 'links_extra.json'));
-  } else {
-    for (const file of args) {
-      await processJsonFile(file);
-    }
-  }
+  await processLinksFile(linksFile);
 
   console.log(`\n${'='.repeat(60)}`);
   console.log('Done! Game names updated from Roblox.');

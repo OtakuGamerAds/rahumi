@@ -46,16 +46,21 @@ def get_channel_video_order(channel_url, max_videos=300):
     print(f"Found {len(video_ids)} videos")
     return video_ids
 
-def sort_videos_by_channel_order(input_file, output_file, channel_url):
-    """Sort videos by their order on the channel."""
+def sort_channel_videos_in_file(json_file, channel_key, channel_url):
+    """Sort videos for a specific channel key in the JSON file."""
     print(f"\n{'='*60}")
-    print(f"Processing: {input_file}")
+    print(f"Processing Key: {channel_key}")
     print(f"{'='*60}")
     
-    with open(input_file, 'r', encoding='utf-8') as f:
-        videos = json.load(f)
-    
-    print(f"Loaded {len(videos)} videos from JSON")
+    try:
+        with open(json_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        print("File not found.")
+        return
+
+    videos = data.get(channel_key, [])
+    print(f"Loaded {len(videos)} videos")
     
     channel_order = get_channel_video_order(channel_url)
     position_map = {vid: idx for idx, vid in enumerate(channel_order)}
@@ -72,26 +77,30 @@ def sort_videos_by_channel_order(input_file, output_file, channel_url):
     for video in videos:
         del video['_channel_position']
     
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(videos, f, indent=2, ensure_ascii=False)
+    # Update data
+    data[channel_key] = videos
+
+    with open(json_file, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
     
-    print(f"Saved {len(videos)} videos to: {output_file}")
+    print(f"Saved {len(videos)} videos to: {json_file}")
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     config_dir = os.path.join(script_dir, '..', 'config')
+    links_file = os.path.join(config_dir, 'links.json')
     
     # Main channel
-    sort_videos_by_channel_order(
-        os.path.join(config_dir, 'links_main.json'),
-        os.path.join(config_dir, 'links_main.json'),
+    sort_channel_videos_in_file(
+        links_file,
+        "قناتي الأولى",
         'https://www.youtube.com/@Rahumi/videos'
     )
     
     # Extra channel  
-    sort_videos_by_channel_order(
-        os.path.join(config_dir, 'links_extra.json'),
-        os.path.join(config_dir, 'links_extra.json'),
+    sort_channel_videos_in_file(
+        links_file,
+        "قناتي الثانية",
         'https://www.youtube.com/@RahumiExtra/videos'
     )
     

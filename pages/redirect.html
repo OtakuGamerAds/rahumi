@@ -220,22 +220,14 @@
             }
 
             try {
-                // Fetch both config files
-                const [mainRes, extraRes] = await Promise.all([
-                    fetch('../config/links_main.json'),
-                    fetch('../config/links_extra.json')
-                ]);
-
+                // Fetch config file
+                const response = await fetch('../config/links.json');
                 let allLinks = [];
 
-                if (mainRes.ok) {
-                    const mainLinks = await mainRes.json();
-                    if (Array.isArray(mainLinks)) allLinks = allLinks.concat(mainLinks);
-                }
-                
-                if (extraRes.ok) {
-                    const extraLinks = await extraRes.json();
-                    if (Array.isArray(extraLinks)) allLinks = allLinks.concat(extraLinks);
+                if (response.ok) {
+                    const data = await response.json();
+                    // Merge arrays from all keys (flatten)
+                    allLinks = Object.values(data).reduce((acc, curr) => acc.concat(curr), []);
                 }
 
                 if (allLinks.length > 0) {

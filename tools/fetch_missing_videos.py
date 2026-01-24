@@ -78,15 +78,20 @@ def get_roblox_link(description):
     
     return "https://www.roblox.com"
 
-def fetch_and_add_missing(json_file, channel_url):
-    """Add missing videos from channel to JSON file."""
+def fetch_and_add_missing(json_file, channel_key, channel_url):
+    """Add missing videos from channel to JSON file under specific key."""
     print(f"\n{'='*60}")
-    print(f"Processing: {json_file}")
+    print(f"Processing Key: {channel_key}")
     print(f"{'='*60}")
     
-    with open(json_file, 'r', encoding='utf-8') as f:
-        existing_videos = json.load(f)
-    
+    try:
+        with open(json_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        print("File not found.")
+        return
+
+    existing_videos = data.get(channel_key, [])
     print(f"Existing videos: {len(existing_videos)}")
     
     # Map existing videos by ID
@@ -123,8 +128,11 @@ def fetch_and_add_missing(json_file, channel_url):
                 added += 1
                 print(f"  Added: {title[:50]}")
     
+    # Update data
+    data[channel_key] = sorted_videos
+
     with open(json_file, 'w', encoding='utf-8') as f:
-        json.dump(sorted_videos, f, indent=2, ensure_ascii=False)
+        json.dump(data, f, indent=2, ensure_ascii=False)
     
     print(f"\nTotal videos: {len(sorted_videos)}, Added: {added}")
     print(f"Saved to: {json_file}")
@@ -132,16 +140,19 @@ def fetch_and_add_missing(json_file, channel_url):
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     config_dir = os.path.join(script_dir, '..', 'config')
+    links_file = os.path.join(config_dir, 'links.json')
     
     # Main channel
     fetch_and_add_missing(
-        os.path.join(config_dir, 'links_main.json'),
+        links_file,
+        "قناتي الأولى",
         'https://www.youtube.com/@Rahumi/videos'
     )
     
     # Extra channel
     fetch_and_add_missing(
-        os.path.join(config_dir, 'links_extra.json'),
+        links_file,
+        "قناتي الثانية",
         'https://www.youtube.com/@RahumiExtra/videos'
     )
     
