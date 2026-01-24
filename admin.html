@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Rahumi</title>
+    <title>Admin Dashboard - Rahumi</title>
     <link rel="stylesheet" href="styles/variables.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Quicksand:wght@500;700&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -18,9 +19,16 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             min-height: 100vh;
+        }
+
+        .hidden { display: none !important; }
+
+        /* ==================== LOGIN VIEW ==================== */
+        #login-view {
             display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 100vh;
             padding: 2rem;
         }
 
@@ -82,12 +90,12 @@
             box-shadow: 0 0 0 3px rgba(136, 192, 166, 0.2);
         }
 
-        .form-group input::placeholder {
-            color: var(--text-light);
-        }
-
+        /* ==================== BUTTONS ==================== */
         .btn {
-            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
             padding: 0.875rem 1.5rem;
             background-color: var(--primary-color);
             color: white;
@@ -98,7 +106,6 @@
             font-family: inherit;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 0.5rem;
         }
 
         .btn:hover:not(:disabled) {
@@ -113,7 +120,31 @@
             transform: none;
         }
 
-        /* Status Messages */
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-light);
+            border: 2px solid var(--primary-light);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: var(--primary-light);
+            color: var(--text-color);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: #c82333;
+        }
+
+        .btn-full { width: 100%; }
+
+        /* ==================== STATUS MESSAGES ==================== */
         .status-message {
             margin-top: 1.5rem;
             padding: 1rem;
@@ -122,9 +153,7 @@
             display: none;
         }
 
-        .status-message.show {
-            display: block;
-        }
+        .status-message.show { display: block; }
 
         .status-message.success {
             background-color: rgba(136, 192, 166, 0.2);
@@ -144,57 +173,323 @@
             border: 1px solid var(--primary-light);
         }
 
-        /* Logout Button */
-        .btn-secondary {
-            background-color: transparent;
+        /* ==================== DASHBOARD VIEW ==================== */
+        #dashboard-view {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            background: var(--surface-color);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .dashboard-header h1 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .dashboard-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ==================== CHANNEL SECTION ==================== */
+        .channel-section {
+            margin-bottom: 2rem;
+        }
+
+        .channel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+
+        .channel-header h2 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.25rem;
+            color: var(--primary-dark);
+        }
+
+        /* ==================== MAP CARDS ==================== */
+        .maps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .map-card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #eee;
+            transition: box-shadow 0.2s, transform 0.2s;
+            position: relative;
+        }
+
+        .map-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .drag-handle {
+            cursor: grab;
+            font-size: 1.25rem;
             color: var(--text-light);
-            border: 2px solid var(--primary-light);
-            margin-top: 1rem;
+            padding: 0.5rem;
+            user-select: none;
         }
 
-        .btn-secondary:hover:not(:disabled) {
-            background-color: var(--primary-light);
+        .drag-handle:active { cursor: grabbing; }
+
+        .map-card-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .map-card-content h3 {
+            font-size: 1rem;
+            font-weight: 700;
             color: var(--text-color);
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .hidden {
-            display: none !important;
+        .map-card-content .links {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .map-card-content .links a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .map-card-content .links a:hover {
+            text-decoration: underline;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #dc3545;
+            color: white;
+            border: 2px solid white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .delete-btn:hover {
+            transform: scale(1.1);
+            background: #c82333;
+        }
+
+        /* Drag and Drop States */
+        .map-card.sortable-ghost {
+            opacity: 0.4;
+            background: var(--primary-light);
+        }
+
+        .map-card.sortable-chosen {
+            box-shadow: 0 8px 24px rgba(136, 192, 166, 0.4);
+            transform: scale(1.02);
+        }
+
+        /* ==================== MODAL ==================== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal {
+            background: var(--surface-color);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h2 {
+            font-family: 'Quicksand', sans-serif;
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+        }
+
+        /* ==================== SAVE BAR ==================== */
+        .save-bar {
+            position: sticky;
+            bottom: 0;
+            background: var(--surface-color);
+            padding: 1rem 2rem;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 600px) {
+            .dashboard-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .map-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .drag-handle {
+                align-self: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <div class="login-header">
-            <div class="logo">🔐 Admin Panel</div>
-            <p>Authorized access only</p>
+    <!-- ==================== LOGIN VIEW ==================== -->
+    <div id="login-view">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">🔐 Admin Panel</div>
+                <p>Authorized access only</p>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" required placeholder="admin@example.com" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required placeholder="Enter your password" autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-full" id="login-btn">Sign In</button>
+            </form>
+            <div id="login-status" class="status-message"></div>
         </div>
+    </div>
 
-        <!-- Login Form -->
-        <form id="login-form">
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" required placeholder="admin@example.com" autocomplete="email">
+    <!-- ==================== DASHBOARD VIEW ==================== -->
+    <div id="dashboard-view" class="hidden">
+        <header class="dashboard-header">
+            <h1>🎮 Content Dashboard</h1>
+            <div class="header-actions">
+                <button id="add-item-btn" class="btn">➕ Add Item</button>
+                <button id="logout-btn" class="btn btn-secondary">Sign Out</button>
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" required placeholder="Enter your password" autocomplete="current-password">
+        </header>
+
+        <main class="dashboard-content" id="content-area">
+            <!-- Channel sections will be rendered here -->
+            <div id="loading-indicator" class="status-message show loading" style="text-align: center;">
+                Loading content...
             </div>
-            <button type="submit" class="btn" id="login-btn">Sign In</button>
-        </form>
+        </main>
 
-        <!-- Logout Button (shown after successful login) -->
-        <button id="logout-btn" class="btn btn-secondary hidden">Sign Out</button>
+        <footer class="save-bar">
+            <button id="save-btn" class="btn" disabled>💾 Save Changes</button>
+            <div id="save-status" class="status-message" style="margin: 0; padding: 0.5rem 1rem;"></div>
+        </footer>
+    </div>
 
-        <!-- Status Message -->
-        <div id="status-message" class="status-message"></div>
+    <!-- ==================== ADD ITEM MODAL ==================== -->
+    <div id="add-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <h2>➕ Add New Item</h2>
+            <form id="add-form">
+                <div class="form-group">
+                    <label for="add-channel">Channel</label>
+                    <select id="add-channel" required style="width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--primary-light); border-radius: 10px; font-size: 1rem; font-family: inherit; background: var(--bg-color);">
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="add-map-name">Map Name</label>
+                    <input type="text" id="add-map-name" required placeholder="e.g. Build A Cart">
+                </div>
+                <div class="form-group">
+                    <label for="add-video-link">Video Link</label>
+                    <input type="url" id="add-video-link" required placeholder="https://youtu.be/...">
+                </div>
+                <div class="form-group">
+                    <label for="add-map-link">Map Link (Roblox)</label>
+                    <input type="url" id="add-map-link" required placeholder="https://www.roblox.com/games/...">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="cancel-add-btn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn">Add Item</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-        // Firebase Configuration
+        // ==================== CONFIG ====================
         const firebaseConfig = {
             apiKey: "AIzaSyCurzL7xeHfumbjnXngeuib0eJZePgM2B8",
             authDomain: "rahumi-redirect.firebaseapp.com",
@@ -204,42 +499,51 @@
             appId: "1:508830697796:web:682d8558d7ad9a298a6f11"
         };
 
+        const githubConfig = {
+            owner: "OtakuGamerAds",
+            repo: "redirect",
+            getPat: () => localStorage.getItem('github_pat')
+        };
+
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // DOM Elements
+        // ==================== STATE ====================
+        let contentData = {};  // Holds all map data by channel
+        let hasChanges = false;
+
+        // ==================== DOM ELEMENTS ====================
+        const loginView = document.getElementById('login-view');
+        const dashboardView = document.getElementById('dashboard-view');
         const loginForm = document.getElementById('login-form');
         const loginBtn = document.getElementById('login-btn');
         const logoutBtn = document.getElementById('logout-btn');
-        const statusMessage = document.getElementById('status-message');
+        const loginStatus = document.getElementById('login-status');
+        const contentArea = document.getElementById('content-area');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const addItemBtn = document.getElementById('add-item-btn');
+        const addModal = document.getElementById('add-modal');
+        const addForm = document.getElementById('add-form');
+        const cancelAddBtn = document.getElementById('cancel-add-btn');
+        const addChannelSelect = document.getElementById('add-channel');
+        const saveBtn = document.getElementById('save-btn');
+        const saveStatus = document.getElementById('save-status');
 
-        // Show status message
-        function showStatus(message, type) {
-            statusMessage.textContent = message;
-            statusMessage.className = `status-message show ${type}`;
-        }
-
-        // Hide status message
-        function hideStatus() {
-            statusMessage.className = 'status-message';
-        }
-
-        // Auth State Observer
-        onAuthStateChanged(auth, (user) => {
+        // ==================== AUTH STATE ====================
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // User is signed in
-                loginForm.classList.add('hidden');
-                logoutBtn.classList.remove('hidden');
-                showStatus(`Welcome! You are logged in as ${user.email}`, 'success');
+                loginView.classList.add('hidden');
+                dashboardView.classList.remove('hidden');
+                await loadContent();
             } else {
-                // User is signed out
-                loginForm.classList.remove('hidden');
-                logoutBtn.classList.add('hidden');
+                loginView.classList.remove('hidden');
+                dashboardView.classList.add('hidden');
             }
         });
 
-        // Login Handler
+        // ==================== LOGIN ====================
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
@@ -247,36 +551,299 @@
 
             loginBtn.disabled = true;
             loginBtn.textContent = 'Signing in...';
-            showStatus('Authenticating...', 'loading');
+            showStatus(loginStatus, 'Authenticating...', 'loading');
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                // Success message is handled by onAuthStateChanged
             } catch (error) {
-                showStatus(getErrorMessage(error.code), 'error');
+                showStatus(loginStatus, getErrorMessage(error.code), 'error');
             } finally {
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Sign In';
             }
         });
 
-        // Logout Handler
+        // ==================== LOGOUT ====================
         logoutBtn.addEventListener('click', async () => {
-            logoutBtn.disabled = true;
-            logoutBtn.textContent = 'Signing out...';
-            
+            if (hasChanges && !confirm('You have unsaved changes. Are you sure you want to sign out?')) {
+                return;
+            }
+            await signOut(auth);
+        });
+
+        // ==================== LOAD CONTENT ====================
+        async function loadContent() {
+            loadingIndicator.classList.remove('hidden');
+            loadingIndicator.textContent = 'Loading content from Firestore...';
+
             try {
-                await signOut(auth);
-                showStatus('You have been signed out successfully.', 'success');
+                const docRef = doc(db, 'content', 'main');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    contentData = data.maps || {};
+                } else {
+                    // Fallback: Fetch from local links.json
+                    loadingIndicator.textContent = 'No Firestore data. Loading from local JSON...';
+                    const response = await fetch('config/links.json');
+                    contentData = await response.json();
+                }
+
+                renderContent();
+                loadingIndicator.classList.add('hidden');
             } catch (error) {
-                showStatus('Error signing out. Please try again.', 'error');
-            } finally {
-                logoutBtn.disabled = false;
-                logoutBtn.textContent = 'Sign Out';
+                console.error('Error loading content:', error);
+                loadingIndicator.textContent = 'Error loading content: ' + error.message;
+                loadingIndicator.className = 'status-message show error';
+            }
+        }
+
+        // ==================== RENDER CONTENT ====================
+        function renderContent() {
+            // Clear existing content (except loading indicator)
+            const sections = contentArea.querySelectorAll('.channel-section');
+            sections.forEach(s => s.remove());
+
+            // Populate channel dropdown
+            addChannelSelect.innerHTML = '';
+            
+            for (const [channelName, maps] of Object.entries(contentData)) {
+                // Add to dropdown
+                const option = document.createElement('option');
+                option.value = channelName;
+                option.textContent = channelName;
+                addChannelSelect.appendChild(option);
+
+                // Create section
+                const section = document.createElement('div');
+                section.className = 'channel-section';
+                section.dataset.channel = channelName;
+
+                section.innerHTML = `
+                    <div class="channel-header">
+                        <h2>📺 ${channelName}</h2>
+                        <span>${maps.length} items</span>
+                    </div>
+                    <div class="maps-list" id="list-${sanitizeId(channelName)}"></div>
+                `;
+
+                contentArea.appendChild(section);
+
+                const mapsList = section.querySelector('.maps-list');
+                
+                maps.forEach((map, index) => {
+                    mapsList.appendChild(createMapCard(map, channelName, index));
+                });
+
+                // Initialize SortableJS
+                new Sortable(mapsList, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    handle: '.drag-handle',
+                    onEnd: () => {
+                        updateDataFromDOM();
+                        markChanged();
+                    }
+                });
+            }
+        }
+
+        function createMapCard(map, channelName, index) {
+            const card = document.createElement('div');
+            card.className = 'map-card';
+            card.dataset.channel = channelName;
+            card.dataset.index = index;
+
+            card.innerHTML = `
+                <div class="drag-handle">☰</div>
+                <div class="map-card-content">
+                    <h3>${escapeHtml(map.map_name || 'Unnamed')}</h3>
+                    <div class="links">
+                        <a href="${escapeHtml(map.video_link)}" target="_blank">📹 Video</a>
+                        <a href="${escapeHtml(map.map_link)}" target="_blank">🎮 Roblox</a>
+                    </div>
+                </div>
+                <button class="delete-btn" title="Delete">✕</button>
+            `;
+
+            // Delete handler
+            card.querySelector('.delete-btn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete this item?')) {
+                    card.remove();
+                    updateDataFromDOM();
+                    markChanged();
+                    updateItemCounts();
+                }
+            });
+
+            return card;
+        }
+
+        function updateItemCounts() {
+            document.querySelectorAll('.channel-section').forEach(section => {
+                const channelName = section.dataset.channel;
+                const count = section.querySelectorAll('.map-card').length;
+                section.querySelector('.channel-header span').textContent = `${count} items`;
+            });
+        }
+
+        // ==================== ADD ITEM ====================
+        addItemBtn.addEventListener('click', () => {
+            addModal.classList.remove('hidden');
+            addForm.reset();
+        });
+
+        cancelAddBtn.addEventListener('click', () => {
+            addModal.classList.add('hidden');
+        });
+
+        addModal.addEventListener('click', (e) => {
+            if (e.target === addModal) {
+                addModal.classList.add('hidden');
             }
         });
 
-        // Error message mapping
+        addForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const channel = addChannelSelect.value;
+            const mapName = document.getElementById('add-map-name').value;
+            const videoLink = document.getElementById('add-video-link').value;
+            const mapLink = document.getElementById('add-map-link').value;
+
+            const newMap = {
+                map_name: mapName,
+                video_link: videoLink,
+                map_link: mapLink
+            };
+
+            // Add to beginning of list
+            const listId = `list-${sanitizeId(channel)}`;
+            const mapsList = document.getElementById(listId);
+            const newCard = createMapCard(newMap, channel, 0);
+            mapsList.prepend(newCard);
+
+            updateDataFromDOM();
+            markChanged();
+            updateItemCounts();
+            
+            addModal.classList.add('hidden');
+        });
+
+        // ==================== SAVE CHANGES ====================
+        saveBtn.addEventListener('click', async () => {
+            // Re-verify auth
+            const user = auth.currentUser;
+            if (!user) {
+                showStatus(saveStatus, 'Not authenticated. Please sign in again.', 'error');
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = '⏳ Saving...';
+            showStatus(saveStatus, 'Saving to Firestore...', 'loading');
+
+            try {
+                // Get existing data or create new
+                const docRef = doc(db, 'content', 'main');
+                const docSnap = await getDoc(docRef);
+                let fullData = docSnap.exists() ? docSnap.data() : {};
+
+                // Update maps
+                fullData.maps = contentData;
+
+                // Save to Firestore
+                await setDoc(docRef, fullData);
+
+                showStatus(saveStatus, 'Triggering site update...', 'loading');
+
+                // Trigger GitHub Action
+                await triggerGitHubAction();
+
+                showStatus(saveStatus, '✅ Saved and published!', 'success');
+                hasChanges = false;
+                saveBtn.disabled = true;
+            } catch (error) {
+                console.error('Save error:', error);
+                showStatus(saveStatus, 'Error: ' + error.message, 'error');
+            } finally {
+                saveBtn.textContent = '💾 Save Changes';
+            }
+        });
+
+        async function triggerGitHubAction() {
+            let ghPat = githubConfig.getPat();
+
+            if (!ghPat) {
+                ghPat = prompt('Enter your GitHub Personal Access Token to publish changes:');
+                if (ghPat) {
+                    localStorage.setItem('github_pat', ghPat);
+                } else {
+                    showStatus(saveStatus, '⚠️ Saved to Firestore. Manual publish required.', 'success');
+                    return;
+                }
+            }
+
+            const response = await fetch(
+                `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/actions/workflows/build-from-firebase.yml/dispatches`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${ghPat}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ref: 'main' })
+                }
+            );
+
+            if (!response.ok && response.status !== 204) {
+                throw new Error('Failed to trigger GitHub Action');
+            }
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function updateDataFromDOM() {
+            contentData = {};
+            document.querySelectorAll('.channel-section').forEach(section => {
+                const channelName = section.dataset.channel;
+                contentData[channelName] = [];
+
+                section.querySelectorAll('.map-card').forEach(card => {
+                    const content = card.querySelector('.map-card-content');
+                    const links = content.querySelectorAll('.links a');
+                    
+                    contentData[channelName].push({
+                        map_name: content.querySelector('h3').textContent,
+                        video_link: links[0].href,
+                        map_link: links[1].href
+                    });
+                });
+            });
+        }
+
+        function markChanged() {
+            hasChanges = true;
+            saveBtn.disabled = false;
+        }
+
+        function sanitizeId(str) {
+            return str.replace(/[^a-zA-Z0-9]/g, '-');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        function showStatus(element, message, type) {
+            element.textContent = message;
+            element.className = `status-message show ${type}`;
+        }
+
         function getErrorMessage(errorCode) {
             const messages = {
                 'auth/invalid-email': 'Invalid email address format.',
@@ -284,10 +851,18 @@
                 'auth/user-not-found': 'No account found with this email.',
                 'auth/wrong-password': 'Incorrect password.',
                 'auth/invalid-credential': 'Invalid login credentials.',
-                'auth/too-many-requests': 'Too many failed attempts. Please try again later.'
+                'auth/too-many-requests': 'Too many failed attempts. Try later.'
             };
-            return messages[errorCode] || 'An unexpected error occurred. Please try again.';
+            return messages[errorCode] || 'An unexpected error occurred.';
         }
+
+        // Warn before leaving with unsaved changes
+        window.addEventListener('beforeunload', (e) => {
+            if (hasChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
     </script>
 </body>
 </html>
