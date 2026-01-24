@@ -226,7 +226,7 @@ async function fetchAndRenderMaps(isPagesDir) {
     grid.innerHTML = '<p style="text-align:center; width:100%;">Loading...</p>';
     
     try {
-        const configPath = isPagesDir ? `../${CONFIG_FILE}` : CONFIG_FILE;
+        const configPath = (isPagesDir ? `../${CONFIG_FILE}` : CONFIG_FILE) + '?t=' + new Date().getTime();
         
         const response = await fetch(configPath);
         if (!response.ok) throw new Error('Failed to load links');
