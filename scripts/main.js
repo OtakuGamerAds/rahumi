@@ -472,8 +472,9 @@ function formatTitleWithBadges(title) {
     if (!title) return "";
     
     // Clean up title (remove specific phrases)
-    // Phrases: "روبولكس : ", " في لعبة روبلوكس", " في روبلوكس", "روبلوكس: ", "روبلوكس ولكن ", "روبلوكس "
+    // Phrases: "روبولكس : ", " في لعبة روبلوكس", " في روبلوكس", "روبلوكس: ", "روبلوكس ولكن ", "روبلوكس : ولكن ", "روبلوكس "
     let cleaned = title.replace(/روبولكس : /g, "") // Handle typo version just in case
+                       .replace(/روبلوكس : ولكن /g, "")
                        .replace(/روبلوكس : /g, "") // Correct spelling with space before colon
                        .replace(/روبلوكس: /g, "")
                        .replace(/روبلوكس ولكن /g, "")
