@@ -334,6 +334,26 @@ function appendMaps() {
   }
 }
 
+const videoTitleCache = {};
+
+async function fetchVideoTitle(videoUrl) {
+    if (!videoUrl) return null;
+    if (videoTitleCache[videoUrl]) return videoTitleCache[videoUrl];
+
+    try {
+        const response = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(videoUrl)}`);
+        if (!response.ok) throw new Error("Network response was not ok");
+        const data = await response.json();
+        if (data.title) {
+            videoTitleCache[videoUrl] = data.title;
+            return data.title;
+        }
+    } catch (error) {
+        console.warn("Failed to fetch video title for:", videoUrl, error);
+    }
+    return null;
+}
+
 function createMapCard(item) {
   const card = document.createElement("div");
   card.className = "map-card";
@@ -369,8 +389,18 @@ function createMapCard(item) {
 
   // Title
   const title = document.createElement("h3");
-  title.textContent = item.map_name;
+  title.textContent = item.map_name; // Fallback
   title.style.margin = "0";
+  // Add a class to help identify elements still waiting for a title if needed
+  title.classList.add("map-title"); 
+  
+  // Async fetch title
+  fetchVideoTitle(item.video_link).then(fetchedTitle => {
+      if (fetchedTitle) {
+          title.textContent = fetchedTitle;
+      }
+  });
+
   infoDiv.appendChild(title);
 
   // Buttons Container
