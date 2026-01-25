@@ -26,3 +26,16 @@
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
 }
+
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --surface-color: #1e1e1e;
+  --text-color: #e0e0e0;
+  --text-light: #a0a0a0;
+  --primary-color: #88c0a6; /* Keep original or slightly adjust if needed */
+  --primary-dark: #5d9c79;
+  --primary-light: #2d3b36; /* Darker bg for primary light areas */
+  
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.7);
+}
