@@ -32,6 +32,12 @@ async function loadConfig() {
     generateHomeNav(data.nav);
 
     if (window.location.pathname.includes("roblox.html")) {
+      // Dynamically set page title from nav config
+      const robloxNav = data.nav.find((item) => item.url.includes("roblox.html"));
+      const pageTitle = document.getElementById("page-title");
+      if (robloxNav && pageTitle) {
+        pageTitle.textContent = robloxNav.text;
+      }
       loadRobloxMaps(isPagesDir);
     }
   } catch (error) {
