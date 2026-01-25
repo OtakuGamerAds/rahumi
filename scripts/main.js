@@ -95,6 +95,10 @@ async function loadConfig() {
       }
       loadRobloxMaps(isPagesDir); // Keeping function name for now as it handles logic
     }
+
+    if (window.location.pathname.includes("article.html")) {
+        loadArticlePage(isPagesDir);
+    }
   } catch (error) {
     console.error("Error loading site data:", error);
   }
@@ -555,6 +559,26 @@ function createMapCard(item) {
   card.className = "map-card";
   card.style.padding = "0";
   card.style.overflow = "hidden";
+  card.style.cursor = "pointer";
+  card.style.transition = "transform 0.2s ease, box-shadow 0.2s ease";
+  
+  // Hover effect to indicate clickable
+  card.onmouseenter = () => {
+      card.style.transform = "translateY(-5px)";
+      card.style.boxShadow = "var(--shadow-lg)";
+  };
+  card.onmouseleave = () => {
+      card.style.transform = "translateY(0)";
+      card.style.boxShadow = "var(--shadow-md)";
+  };
+
+  // Click Action
+  const videoId = getVideoId(item.video_link);
+  if (videoId) {
+      card.onclick = () => {
+          window.location.href = `article.html?id=${videoId}`;
+      };
+  }
 
   // 1. Thumbnail
   const thumbUrl = getYouTubeThumbnail(item.video_link);
@@ -588,59 +612,22 @@ function createMapCard(item) {
   // Use innerHTML to allow badges
   title.innerHTML = formatTitleWithBadges(item.map_name); // Fallback
   title.style.margin = "0";
-  title.style.lineHeight = "1.8"; // Add breathing room for badges
-  // Add a class to help identify elements still waiting for a title if needed
+  title.style.lineHeight = "1.8"; 
   title.classList.add("map-title"); 
   
-  // Process badges in the initial title
   processBadges(title);
 
   // Async fetch title
   fetchVideoTitle(item.video_link).then(fetchedTitle => {
       if (fetchedTitle) {
           title.innerHTML = formatTitleWithBadges(fetchedTitle);
-          // Process badges in the NEW title
           processBadges(title);
       }
   });
 
   infoDiv.appendChild(title);
-
-  // Buttons Container
-  const btnsDiv = document.createElement("div");
-  btnsDiv.style.display = "flex";
-  btnsDiv.style.gap = "1rem";
-  btnsDiv.style.width = "100%";
-  btnsDiv.style.justifyContent = "center";
-
-  // Watch Button
-  const watchBtn = document.createElement("a");
-  watchBtn.className = "btn";
-  watchBtn.innerHTML = `شاهد <span style="margin-right: 0.5rem;">📺</span>`;
-  watchBtn.href = item.video_link;
-  watchBtn.target = "_blank";
-  watchBtn.style.backgroundColor = "#e74c3c";
-  watchBtn.style.flex = "1";
-  watchBtn.style.textAlign = "center";
-
-  // Play Button (Redirect)
-  const playBtn = document.createElement("a");
-  playBtn.className = "btn";
-  playBtn.innerHTML = `العب <span style="margin-right: 0.5rem;">🎮</span>`;
   
-  if (enableRedirection) {
-      playBtn.href = `redirect.html?key=${encodeURIComponent(item.map_name)}`;
-  } else {
-      playBtn.href = item.map_link;
-  }
-  
-  playBtn.target = "_blank";
-  playBtn.style.flex = "1";
-  playBtn.style.textAlign = "center";
-
-  btnsDiv.appendChild(watchBtn);
-  btnsDiv.appendChild(playBtn);
-  infoDiv.appendChild(btnsDiv);
+  // Buttons removed as requested
 
   card.appendChild(infoDiv);
   return card;
@@ -732,4 +719,98 @@ function getYouTubeThumbnail(url) {
     return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
   }
   return "";
+}
+// Helper to get raw video ID
+function getVideoId(url) {
+    if (!url) return null;
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([^&]+)/);
+    return match ? match[1] : null;
+}
+
+/* Article Page Logic */
+async function loadArticlePage(isPagesDir) {
+    const loader = document.getElementById("article-loader");
+    const view = document.getElementById("article-view");
+    
+    try {
+        // Get ID from URL
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+        
+        if (!id) throw new Error("No video ID specified");
+        
+        // Load Links
+        const configPath = (isPagesDir ? `../${CONFIG_FILE}` : CONFIG_FILE) + "?t=" + new Date().getTime();
+        const response = await fetch(configPath);
+        if (!response.ok) throw new Error("Failed to load links config");
+        const linksData = await response.json();
+        
+        // Find Item (Search all channels)
+        let item = null;
+        for (const channel in linksData) {
+            const found = linksData[channel].find(i => getVideoId(i.video_link) === id);
+            if (found) {
+                item = found;
+                break;
+            }
+        }
+        
+        if (!item) throw new Error("Video not found in database");
+        
+        // Update Metadata
+        document.title = `${item.map_name} - رحومي`;
+        // Async fetch accurate title if possible
+        fetchVideoTitle(item.video_link).then(fetchedTitle => {
+            if (fetchedTitle) {
+               document.title = `${fetchedTitle} - رحومي`;
+            }
+        });
+
+        // Setup Video
+        const embedUrl = `https://www.youtube.com/embed/${id}`;
+        document.getElementById("video-embed").src = embedUrl;
+        
+        // Setup Play Button
+         const playBtn = document.getElementById("game-play-btn");
+         if (enableRedirection) {
+             playBtn.href = `redirect.html?key=${encodeURIComponent(item.map_name)}`;
+         } else {
+             playBtn.href = item.map_link;
+         }
+        
+        // Fetch Article Markdown
+        let mdPath = `../assets/articles/${id}.md`;
+        const mdResponse = await fetch(mdPath);
+        
+        if (!mdResponse.ok) {
+             throw new Error("Article content available soon!");
+        }
+        
+        const mdText = await mdResponse.text();
+        
+        // Convert Markdown to HTML
+        if (typeof marked !== 'undefined') {
+             // Configure marked for RTL if needed or just parse
+             document.getElementById("article-content").innerHTML = marked.parse(mdText);
+        } else {
+            console.error("Marked library not loaded");
+            document.getElementById("article-content").innerHTML = "<p>System Error: Markdown parser missing.</p>";
+        }
+        
+        // Show Content
+        if(loader) loader.style.display = "none";
+        if(view) view.style.display = "block";
+        
+    } catch (err) {
+        console.error("Error loading article:", err);
+        if(loader) {
+            loader.innerHTML = `
+                <div style="color: var(--text-color); text-align: center;">
+                    <h3>عذراً!</h3>
+                    <p>${err.message}</p>
+                    <a href="videos.html" class="btn" style="margin-top: 1rem;">العودة للفيديوهات</a>
+                </div>
+            `;
+        }
+    }
 }
