@@ -134,6 +134,10 @@ footer p {
   margin-top: var(--spacing-lg);
 }
 
+.contact-card {
+  background-color: var(--surface-color);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .nav-links {
@@ -163,7 +167,7 @@ footer p {
     transform 0.2s,
     box-shadow 0.2s;
   cursor: pointer;
-  border: 1px solid #eee;
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   align-items: center;

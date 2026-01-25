@@ -25,6 +25,9 @@
   /* Shadows */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
+
+  /* Borders */
+  --border-color: #eee;
 }
 
 [data-theme="dark"] {
@@ -38,4 +41,6 @@
   
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.7);
+  
+  --border-color: #333; /* Darker border for dark mode */
 }

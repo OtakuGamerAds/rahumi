@@ -13,7 +13,12 @@
 <body>
     <nav class="navbar">
         <div class="container">
-            <div class="logo">رحومي - Rahumi</div>
+            <div class="logo-wrapper" style="display: flex; align-items: center; gap: 1rem;">
+                <button id="theme-toggle" class="btn" style="padding: 0.5rem; background: transparent; color: var(--text-color); box-shadow: none;">
+                    <i id="theme-icon" class="fas fa-moon"></i>
+                </button>
+                <div class="logo">رحومي - Rahumi</div>
+            </div>
             <ul class="nav-links" id="nav-list">
                 <!-- Javascript will populate this -->
             </ul>
@@ -26,7 +31,7 @@
             <h1>للتواصل والإعلانات</h1>
             <p data-key="contact.ads_message" style="font-size: 1.2rem; margin: 2rem 0;"></p>
             
-            <div class="contact-card" style="background: white; padding: 2rem; border-radius: 10px; box-shadow: var(--shadow-sm); display: inline-block;">
+            <div class="contact-card" style="padding: 2rem; border-radius: 10px; box-shadow: var(--shadow-sm); display: inline-block;">
                 <h3>البريد الإلكتروني للإعلانات:</h3>
 <a data-key="links.ads_email" id="ads-email-link" style="color: var(--primary-dark); font-weight: bold; font-size: 1.1rem; display: block; margin-top: 0.5rem;" dir="ltr"></a>
             </div>
