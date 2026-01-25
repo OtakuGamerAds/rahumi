@@ -86,14 +86,14 @@ async function loadConfig() {
     generateNav(data.nav, isPagesDir);
     generateHomeNav(data.nav);
 
-    if (window.location.pathname.includes("roblox.html")) {
+    if (window.location.pathname.includes("videos.html")) {
       // Dynamically set page title from nav config
-      const robloxNav = data.nav.find((item) => item.url.includes("roblox.html"));
+      const videosNav = data.nav.find((item) => item.url.includes("videos.html"));
       const pageTitle = document.getElementById("page-title");
-      if (robloxNav && pageTitle) {
-        pageTitle.textContent = robloxNav.text;
+      if (videosNav && pageTitle) {
+        pageTitle.textContent = videosNav.text;
       }
-      loadRobloxMaps(isPagesDir);
+      loadRobloxMaps(isPagesDir); // Keeping function name for now as it handles logic
     }
   } catch (error) {
     console.error("Error loading site data:", error);
@@ -219,8 +219,8 @@ function generateNav(navItems, isPagesDir) {
     a.href = finalUrl;
     a.textContent = item.text;
 
-    // Special styling for Roblox link to match toggle button
-    if (item.url.includes("roblox.html")) {
+    // Special styling for Videos link to match toggle button
+    if (item.url.includes("videos.html")) {
         a.classList.add("btn");
         a.style.padding = "0.5rem 1rem";
         a.style.color = "white";
@@ -284,9 +284,9 @@ function generateHomeNav(navItems) {
     a.style.display = "block";
     a.style.textAlign = "center";
 
-    // Add special animation class for Roblox link + Joystick Emoji
-    if (item.url.includes("roblox.html")) {
-      a.classList.add("roblox-btn-animate");
+    // Add special animation class for Videos link + Joystick Emoji
+    if (item.url.includes("videos.html")) {
+      a.classList.add("videos-btn-animate");
       a.innerHTML = `${item.text} <span style="margin-right: 0.5rem;">🎮</span>`;
     }
 
