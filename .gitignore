@@ -12,3 +12,8 @@ scripts/firebase-config.js
 # Functions dependencies
 functions/node_modules/
 
+
+# Local Development
+credentials.json
+node_modules/
+package-lock.json
