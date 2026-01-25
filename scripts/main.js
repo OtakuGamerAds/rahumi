@@ -472,8 +472,9 @@ function formatTitleWithBadges(title) {
     if (!title) return "";
     
     // Clean up title (remove specific phrases)
-    // Phrases: "روبولكس : ", " في لعبة روبلوكس", " في روبلوكس"
+    // Phrases: "روبولكس : ", " في لعبة روبلوكس", " في روبلوكس", "روبلوكس: "
     let cleaned = title.replace(/روبولكس : /g, "")
+                       .replace(/روبلوكس: /g, "")
                        .replace(/ في لعبة روبلوكس/g, "")
                        .replace(/ في روبلوكس/g, "");
 
