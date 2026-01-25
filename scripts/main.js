@@ -23,6 +23,10 @@ async function loadConfig() {
       enableRedirection = data.enable_redirect_feature;
     }
 
+    if (data.collaborators) {
+        window.siteCollaborators = data.collaborators;
+    }
+
     populateContent(data);
     generateNav(data.nav, isPagesDir);
     generateHomeNav(data.nav);
@@ -354,6 +358,39 @@ async function fetchVideoTitle(videoUrl) {
     return null;
 }
 
+function formatTitleWithBadges(title) {
+    if (!window.siteCollaborators) return title;
+    
+    // Replace handles like @OtakuG with styled links
+    // We escape the title first to prevent XSS if it wasn't already safe, 
+    // but since we're injecting HTML, we need to be careful. 
+    // Assuming titles from YouTube/Config are relatively safe text.
+    
+    let formattedTitle = title;
+    
+    // Regex to find @Handle generally (alphanumeric + underscore)
+    // We iterate over our known collaborators to replace specifically them
+    for (const [handle, data] of Object.entries(window.siteCollaborators)) {
+        // Case-insensitive replacement for better UX? Or exact? 
+        // YouTube handles are technically case-insensitive now (I think), but let's stick to exact or loose match.
+        // The user asked for "each time there is a name of a youtuber... replace their handle".
+        
+        // Escape handle for regex
+        const escapedHandle = handle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
+        const regex = new RegExp(`(${escapedHandle})`, 'gi'); // Global, Case-insensitive
+        
+        if (formattedTitle.match(regex)) {
+             const badgeHtml = `<a href="${data.url}" target="_blank" class="youtuber-badge" onclick="event.stopPropagation();">
+                <i class="fab fa-youtube" style="margin-left:5px; color: #ff0000;"></i>
+                ${data.name}
+            </a>`;
+            formattedTitle = formattedTitle.replace(regex, badgeHtml);
+        }
+    }
+    
+    return formattedTitle;
+}
+
 function createMapCard(item) {
   const card = document.createElement("div");
   card.className = "map-card";
@@ -389,15 +426,17 @@ function createMapCard(item) {
 
   // Title
   const title = document.createElement("h3");
-  title.textContent = item.map_name; // Fallback
+  // Use innerHTML to allow badges
+  title.innerHTML = formatTitleWithBadges(item.map_name); // Fallback
   title.style.margin = "0";
+  title.style.lineHeight = "1.8"; // Add breathing room for badges
   // Add a class to help identify elements still waiting for a title if needed
   title.classList.add("map-title"); 
   
   // Async fetch title
   fetchVideoTitle(item.video_link).then(fetchedTitle => {
       if (fetchedTitle) {
-          title.textContent = fetchedTitle;
+          title.innerHTML = formatTitleWithBadges(fetchedTitle);
       }
   });
 
