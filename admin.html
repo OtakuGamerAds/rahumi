@@ -455,6 +455,20 @@
         .youtuber-badge span {
             margin-right: 2px;
         }
+
+        .missing-article-badge {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 0.5rem;
+            cursor: help;
+        }
     </style>
 </head>
 <body>
@@ -904,6 +918,26 @@
                 processBadges(titleEl);
             });
 
+            // Check if article exists
+            if (map.video_link) {
+                const videoId = extractVideoId(map.video_link);
+                if (videoId) {
+                    // Check if map object already has content (from DOM update)
+                    if (!map.article_content) {
+                        checkArticleExists(videoId).then(exists => {
+                            if (!exists) {
+                                const linksContainer = card.querySelector('.links');
+                                const badge = document.createElement('span');
+                                badge.className = 'missing-article-badge';
+                                badge.textContent = '⚠️ Article Missing!';
+                                badge.title = 'No Markdown file found for this video.';
+                                linksContainer.appendChild(badge);
+                            }
+                        });
+                    }
+                }
+            }
+
             // Edit handler (Click on content area, ignore links/buttons)
             card.querySelector('.map-card-content').addEventListener('click', (e) => {
                 if (e.target.tagName === 'A') return;
@@ -1069,6 +1103,16 @@
                 saveBtn.textContent = '💾 Save Changes';
             }
         });
+
+        async function checkArticleExists(videoId) {
+            try {
+                // Use HEAD request to check availability efficiently
+                const response = await fetch(`assets/articles/${videoId}.md`, { method: 'HEAD' });
+                return response.ok;
+            } catch (e) {
+                return false;
+            }
+        }
 
         async function triggerGitHubAction() {
             // Call the Cloud Function (PAT is safely stored on server)
