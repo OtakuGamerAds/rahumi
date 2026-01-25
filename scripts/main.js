@@ -780,24 +780,29 @@ async function loadArticlePage(isPagesDir) {
         
         // Fetch Article Markdown
         let mdPath = `../assets/articles/${id}.md`;
-        const mdResponse = await fetch(mdPath);
         
-        if (!mdResponse.ok) {
-             throw new Error("Article content available soon!");
+        try {
+            const mdResponse = await fetch(mdPath);
+            if (!mdResponse.ok) {
+                // If not found, just hide content and swallow error
+                document.getElementById("article-content").style.display = 'none';
+            } else {
+                 const mdText = await mdResponse.text();
+                 // Convert Markdown to HTML
+                if (typeof marked !== 'undefined') {
+                    document.getElementById("article-content").innerHTML = marked.parse(mdText);
+                    document.getElementById("article-content").style.display = 'block';
+                } else {
+                    console.error("Marked library not loaded");
+                    document.getElementById("article-content").style.display = 'none';
+                }
+            }
+        } catch (e) {
+            console.warn("Could not load article markdown:", e);
+             document.getElementById("article-content").style.display = 'none';
         }
-        
-        const mdText = await mdResponse.text();
-        
-        // Convert Markdown to HTML
-        if (typeof marked !== 'undefined') {
-             // Configure marked for RTL if needed or just parse
-             document.getElementById("article-content").innerHTML = marked.parse(mdText);
-        } else {
-            console.error("Marked library not loaded");
-            document.getElementById("article-content").innerHTML = "<p>System Error: Markdown parser missing.</p>";
-        }
-        
-        // Show Content
+
+        // Show Content (Even if article is missing)
         if(loader) loader.style.display = "none";
         if(view) view.style.display = "block";
         
