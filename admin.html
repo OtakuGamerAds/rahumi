@@ -673,6 +673,18 @@
             });
         }
 
+        // ==================== TEXT DIRECTION HELPER ====================
+        function setElementDirection(element, text) {
+            const arabicPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+            if (arabicPattern.test(text)) {
+                element.style.direction = 'rtl';
+                element.style.textAlign = 'right';
+            } else {
+                element.style.direction = 'ltr';
+                element.style.textAlign = 'left';
+            }
+        }
+
         function updateChannelButtonStyles() {
             const buttons = channelButtonsContainer.querySelectorAll('.channel-btn');
             buttons.forEach(btn => {
@@ -852,6 +864,10 @@
             fetchVideoTitle(map.video_link).then(title => {
                 const titleEl = card.querySelector('h3');
                 const displayTitle = title || map.video_link || 'No Title';
+                
+                // Apply RTL if Arabic found
+                setElementDirection(titleEl, displayTitle);
+
                 titleEl.innerHTML = formatTitleWithBadges(displayTitle);
                 processBadges(titleEl);
             });
