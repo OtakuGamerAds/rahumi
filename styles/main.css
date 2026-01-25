@@ -70,6 +70,7 @@ a {
   display: flex;
   gap: var(--spacing-lg);
   list-style: none;
+  align-items: center;
 }
 
 .nav-links a {
