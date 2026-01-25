@@ -167,6 +167,28 @@
                 font-size: 1.25rem;
             }
         }
+
+        /* Dark Mode Overrides */
+        [data-theme="dark"] .ad-banner {
+            background: #1a1a1a;
+        }
+
+        [data-theme="dark"] .ad-banner-slot {
+            background: #2a2a2a;
+            border-color: #444;
+            color: #888;
+        }
+
+        [data-theme="dark"] .side-ad {
+            background: #2a2a2a;
+            border-color: #444;
+            color: #888;
+        }
+
+        /* Ensure countdown circle background matches surface in dark mode (already uses var(--surface-color) but ensure contrast if needed) */
+        [data-theme="dark"] .countdown-circle {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
