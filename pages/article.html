@@ -78,6 +78,19 @@
             color: white;
             box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 480px) {
+            .play-big-btn {
+                padding: 1rem 1.5rem;
+                font-size: 1.2rem;
+                width: 100%;
+                max-width: 300px;
+            }
         }
         
         .play-big-btn:hover {
