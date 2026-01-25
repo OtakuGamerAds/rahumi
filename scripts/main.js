@@ -472,12 +472,16 @@ function formatTitleWithBadges(title) {
     if (!title) return "";
     
     // Clean up title (remove specific phrases)
-    // Phrases: "روبولكس : ", " في لعبة روبلوكس", " في روبلوكس", "روبلوكس: ", "روبلوكس "
-    let cleaned = title.replace(/روبولكس : /g, "")
+    // Phrases: "روبولكس : " (typo fix -> روبلوكس : ), " في لعبة روبلوكس", " في روبلوكس", "روبلوكس: ", "روبلوكس "
+    let cleaned = title.replace(/روبولكس : /g, "") // Handle typo version just in case
+                       .replace(/روبلوكس : /g, "") // Correct spelling with space before colon
                        .replace(/روبلوكس: /g, "")
                        .replace(/روبلوكس /g, "")
                        .replace(/ في لعبة روبلوكس/g, "")
                        .replace(/ في روبلوكس/g, "");
+    
+    // Clean potential leftover starting punctuation like ": " or " :"
+    cleaned = cleaned.trim().replace(/^[:\s-]+/g, "").trim();
 
     // Regex to find @Handle (alphanumeric, underscore, dot, hyphen)
     // Matches @FollowedByChars until a space or end of string or non-handle char
