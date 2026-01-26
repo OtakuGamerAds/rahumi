@@ -24,8 +24,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Rahumi</title>
-    <link rel="icon" href="assets/images/profile_pictures/Rahumi.jpg">
-    <link rel="stylesheet" href="styles/variables.css">
+    <link rel="icon" href="../assets/images/profile_pictures/Rahumi.jpg">
+    <link rel="stylesheet" href="../styles/variables.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Quicksand:wght@500;700&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -647,7 +647,7 @@
         // Removed Cloud Functions import as we are using client-side fetch for GitHub Actions
 
         // Import Config
-        import { firebaseConfig } from './config/firebase-config.js';
+        import { firebaseConfig } from '../config/firebase-config.js';
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -742,7 +742,7 @@
                     loadingIndicator.textContent = 'Loading from local JSON...';
                     // Fallback: Load from local links.json with cache busting
                     loadingIndicator.textContent = 'Loading from local JSON...';
-                    const response = await fetch('config/links.json?t=' + new Date().getTime());
+                    const response = await fetch('../config/links.json?t=' + new Date().getTime());
                     if (!response.ok) throw new Error('Failed to load links.json');
                     allChannelsData = await response.json();
                     // Preserve the order from JSON (object keys in insertion order)
@@ -1064,7 +1064,7 @@
             if (mapData && mapData.video_link && !textarea.value) {
                 const videoId = extractVideoId(mapData.video_link);
                 if (videoId) {
-                    fetch(`assets/articles/${videoId}.md?t=${new Date().getTime()}`)
+                    fetch(`../assets/articles/${videoId}.md?t=${new Date().getTime()}`)
                         .then(response => {
                             if (response.ok) return response.text();
                             throw new Error('Not found');
@@ -1185,7 +1185,7 @@
         async function checkArticleExists(videoId) {
             try {
                 // Use HEAD request to check availability efficiently
-                const response = await fetch(`assets/articles/${videoId}.md`, { method: 'HEAD' });
+                const response = await fetch(`../assets/articles/${videoId}.md`, { method: 'HEAD' });
                 return response.ok;
             } catch (e) {
                 return false;
@@ -1303,6 +1303,6 @@
             }
         });
     </script>
-    <script src="scripts/consent.js"></script>
+    <script src="../scripts/consent.js"></script>
 </body>
 </html>
