@@ -1,16 +1,27 @@
 :root {
-  /* Color Palette - Soft Green & Off-White */
-  --primary-color: #88c0a6; /* Soft Green */
-  --primary-dark: #5d9c79; /* Darker Green for hover/accents */
-  --primary-light: #bfe3d3; /* Light Green for backgrounds */
+  /* Rahumi Brand Palette */
+  --brand-green-light: #63cd39;
+  --brand-green: #3ab000;
+  --brand-green-dark: #2a7206;
+  --brand-red: #d40000;
+  --brand-red-dark: #a30000;
+  --brand-pink: #f16868;
+  --brand-pink-dark: #c34847;
+  --brand-black: #222222;
+  --brand-white: #ffffff;
 
-  --bg-color: #faf9f6; /* Off-White (Warm) */
-  --surface-color: #ffffff; /* Pure White for cards */
+  /* Functional Colors Mapped to Brand */
+  --primary-color: var(--brand-green);
+  --primary-dark: var(--brand-green-dark);
+  --primary-light: var(--brand-green-light);
 
-  --text-color: #2f3e3b; /* Dark Green-Gray for text */
-  --text-light: #6b7c76; /* Lighter text for subtitles */
+  --bg-color: #f9f9f9; /* Slightly off-white for background to contrast with white elements */
+  --surface-color: var(--brand-white);
 
-  --accent-color: #e8a87c; /* Soft Orange for CTAs (Complementary) */
+  --text-color: var(--brand-black);
+  --text-light: #666666; /* Manually adjusted lighter grey */
+
+  --accent-color: var(--brand-red);
 
   /* Spacing */
   --spacing-sm: 0.5rem;
@@ -35,12 +46,15 @@
   --surface-color: #1e1e1e;
   --text-color: #e0e0e0;
   --text-light: #a0a0a0;
-  --primary-color: #88c0a6; /* Keep original or slightly adjust if needed */
-  --primary-dark: #5d9c79;
-  --primary-light: #2d3b36; /* Darker bg for primary light areas */
+  
+  /* Update Dark Mode Primary to match new brand but maybe slightly adjusted if needed, 
+     but usually brand colors should stay consistent. */
+  --primary-color: var(--brand-green); 
+  --primary-dark: var(--brand-green-dark);
+  --primary-light: #2d3b36; /* Darker bg for primary light areas in dark mode context */
   
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.7);
   
-  --border-color: #333; /* Darker border for dark mode */
+  --border-color: #333;
 }
