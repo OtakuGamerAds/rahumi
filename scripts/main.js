@@ -749,6 +749,25 @@ function getVideoId(url) {
 }
 
 /* Article Page Logic */
+let player;
+let youtubeApiPromise = null;
+
+function loadYouTubeApi() {
+    if (youtubeApiPromise) return youtubeApiPromise;
+    youtubeApiPromise = new Promise((resolve) => {
+        if (window.YT && window.YT.Player) {
+            resolve();
+            return;
+        }
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        window.onYouTubeIframeAPIReady = () => resolve();
+    });
+    return youtubeApiPromise;
+}
+
 async function loadArticlePage(isPagesDir) {
     const loader = document.getElementById("article-loader");
     const view = document.getElementById("article-view");
@@ -787,9 +806,24 @@ async function loadArticlePage(isPagesDir) {
             }
         });
 
-        // Setup Video
-        const embedUrl = `https://www.youtube.com/embed/${id}`;
+        // Setup Video with YouTube API
+        await loadYouTubeApi();
+        
+        const embedUrl = `https://www.youtube.com/embed/${id}?enablejsapi=1`;
         document.getElementById("video-embed").src = embedUrl;
+
+        // Initialize Player
+        if (player) {
+            try { player.destroy(); } catch(e) { console.warn("Error destroying player", e); }
+        }
+        
+        player = new YT.Player('video-embed', {
+            events: {
+                'onReady': (event) => {
+                     // Player ready
+                }
+            }
+        });
         
          // Setup Play Button
          const playBtn = document.getElementById("game-play-btn");
@@ -819,11 +853,47 @@ async function loadArticlePage(isPagesDir) {
                 // If not found, just hide content and swallow error
                 document.getElementById("article-content").style.display = 'none';
             } else {
-                 const mdText = await mdResponse.text();
+                 let mdText = await mdResponse.text();
+                 
+                 // Process Timestamps: (m:ss) -> Link
+                 // Regex matches (m:ss) or (mm:ss) or (h:mm:ss) inside parentheses
+                 const timestampRegex = /\((\d{1,2}:\d{2}(?::\d{2})?)\)/g;
+                 mdText = mdText.replace(timestampRegex, (match, time) => {
+                     return `<a href="#" class="timestamp-link" data-time="${time}">(${time})</a>`;
+                 });
+
                  // Convert Markdown to HTML
                 if (typeof marked !== 'undefined') {
-                    document.getElementById("article-content").innerHTML = marked.parse(mdText);
-                    document.getElementById("article-content").style.display = 'block';
+                    const contentDiv = document.getElementById("article-content");
+                    contentDiv.innerHTML = marked.parse(mdText);
+                    contentDiv.style.display = 'block';
+
+                    // Add click listeners to timestamps
+                    contentDiv.querySelectorAll('.timestamp-link').forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const timeStr = link.getAttribute('data-time');
+                            const parts = timeStr.split(':').map(Number);
+                            let seconds = 0;
+                            if (parts.length === 2) {
+                                seconds = parts[0] * 60 + parts[1];
+                            } else if (parts.length === 3) {
+                                seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+                            }
+
+                            if (player && typeof player.seekTo === 'function') {
+                                player.seekTo(seconds, true);
+                                player.playVideo();
+                                
+                                // Scroll video into view
+                                const videoWrapper = document.querySelector('.video-wrapper');
+                                if (videoWrapper) {
+                                    videoWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            }
+                        });
+                    });
+
                 } else {
                     console.error("Marked library not loaded");
                     document.getElementById("article-content").style.display = 'none';
