@@ -809,8 +809,16 @@ async function loadArticlePage(isPagesDir) {
         // Setup Video with YouTube API
         await loadYouTubeApi();
         
-        const embedUrl = `https://www.youtube.com/embed/${id}?enablejsapi=1`;
-        document.getElementById("video-embed").src = embedUrl;
+        // Add origin to enablejsapi for security/reliability
+        const origin = window.location.origin;
+        const embedUrl = `https://www.youtube.com/embed/${id}?enablejsapi=1&origin=${origin}&rel=0`;
+        const iframe = document.getElementById("video-embed");
+        iframe.src = embedUrl;
+        
+        // Ensure allow attribute has autoplay permissions (critical for programmatic play)
+        if (!iframe.getAttribute('allow') || !iframe.getAttribute('allow').includes('autoplay')) {
+            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+        }
 
         // Initialize Player
         if (player) {
