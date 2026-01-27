@@ -881,22 +881,25 @@ async function loadArticlePage(isPagesDir) {
                                 seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
                             }
 
-                            if (player && typeof player.seekTo === 'function') {
-                                // Logic: If not playing, play first, then seek.
-                                // seekTo(seconds, true) *should* play if already playing, but if paused/unstarted, it stays paused.
-                                // We want to force play.
-                                
+                            if (player && typeof player.loadVideoById === 'function') {
                                 const playerState = player.getPlayerState();
-                                // -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (video cued)
+                                // -1 (unstarted), 5 (video cued)
                                 
-                                player.playVideo();
-                                
-                                // Seeking immediately might not work if unstarted, but let's try.
-                                // If it was unstarted (-1) or cued (5), we might need a small delay or trust the API.
-                                // The API docs say: "The player will play the video after seeking if the player was playing... Otherwise paused."
-                                // So we MUST call playVideo().
-                                
-                                player.seekTo(seconds, true);
+                                if (playerState === -1 || playerState === 5) {
+                                    // If unstarted, seekTo might not start playback reliably in all browsers/contexts.
+                                    // loadVideoById forces a reload/start at the specific time.
+                                    player.loadVideoById({
+                                        videoId: id,
+                                        startSeconds: seconds
+                                    });
+                                } else {
+                                    // If already active, just seek and ensure playing.
+                                    // Order: seek then play seems safer to ensure "play" is the final command,
+                                    // but we previously tried play then seek.
+                                    // Let's do seek then play.
+                                    player.seekTo(seconds, true);
+                                    player.playVideo();
+                                }
                                 
                                 // Scroll video into view
                                 const videoWrapper = document.querySelector('.video-wrapper');
