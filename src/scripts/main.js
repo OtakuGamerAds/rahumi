@@ -749,6 +749,25 @@ function getVideoId(url) {
 }
 
 /* Article Page Logic */
+let player;
+let youtubeApiPromise = null;
+
+function loadYouTubeApi() {
+    if (youtubeApiPromise) return youtubeApiPromise;
+    youtubeApiPromise = new Promise((resolve) => {
+        if (window.YT && window.YT.Player) {
+            resolve();
+            return;
+        }
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        window.onYouTubeIframeAPIReady = () => resolve();
+    });
+    return youtubeApiPromise;
+}
+
 async function loadArticlePage(isPagesDir) {
     const loader = document.getElementById("article-loader");
     const view = document.getElementById("article-view");
@@ -787,9 +806,32 @@ async function loadArticlePage(isPagesDir) {
             }
         });
 
-        // Setup Video
-        const embedUrl = `https://www.youtube.com/embed/${id}`;
-        document.getElementById("video-embed").src = embedUrl;
+        // Setup Video with YouTube API
+        await loadYouTubeApi();
+        
+        // Add origin to enablejsapi for security/reliability
+        const origin = window.location.origin;
+        const embedUrl = `https://www.youtube.com/embed/${id}?enablejsapi=1&origin=${origin}&rel=0`;
+        const iframe = document.getElementById("video-embed");
+        iframe.src = embedUrl;
+        
+        // Ensure allow attribute has autoplay permissions (critical for programmatic play)
+        if (!iframe.getAttribute('allow') || !iframe.getAttribute('allow').includes('autoplay')) {
+            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+        }
+
+        // Initialize Player
+        if (player) {
+            try { player.destroy(); } catch(e) { console.warn("Error destroying player", e); }
+        }
+        
+        player = new YT.Player('video-embed', {
+            events: {
+                'onReady': (event) => {
+                     // Player ready
+                }
+            }
+        });
         
          // Setup Play Button
          const playBtn = document.getElementById("game-play-btn");
@@ -819,11 +861,63 @@ async function loadArticlePage(isPagesDir) {
                 // If not found, just hide content and swallow error
                 document.getElementById("article-content").style.display = 'none';
             } else {
-                 const mdText = await mdResponse.text();
+                 let mdText = await mdResponse.text();
+                 
+                 // Process Timestamps: (m:ss) -> Link
+                 // Regex matches (m:ss) or (mm:ss) or (h:mm:ss) inside parentheses
+                 const timestampRegex = /\((\d{1,2}:\d{2}(?::\d{2})?)\)/g;
+                 mdText = mdText.replace(timestampRegex, (match, time) => {
+                     return `<a href="#" class="timestamp-link" data-time="${time}">(${time})</a>`;
+                 });
+
                  // Convert Markdown to HTML
                 if (typeof marked !== 'undefined') {
-                    document.getElementById("article-content").innerHTML = marked.parse(mdText);
-                    document.getElementById("article-content").style.display = 'block';
+                    const contentDiv = document.getElementById("article-content");
+                    contentDiv.innerHTML = marked.parse(mdText);
+                    contentDiv.style.display = 'block';
+
+                    // Add click listeners to timestamps
+                    contentDiv.querySelectorAll('.timestamp-link').forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const timeStr = link.getAttribute('data-time');
+                            const parts = timeStr.split(':').map(Number);
+                            let seconds = 0;
+                            if (parts.length === 2) {
+                                seconds = parts[0] * 60 + parts[1];
+                            } else if (parts.length === 3) {
+                                seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+                            }
+
+                            if (player && typeof player.loadVideoById === 'function') {
+                                const playerState = player.getPlayerState();
+                                // -1 (unstarted), 5 (video cued)
+                                
+                                if (playerState === -1 || playerState === 5) {
+                                    // If unstarted, seekTo might not start playback reliably in all browsers/contexts.
+                                    // loadVideoById forces a reload/start at the specific time.
+                                    player.loadVideoById({
+                                        videoId: id,
+                                        startSeconds: seconds
+                                    });
+                                } else {
+                                    // If already active, just seek and ensure playing.
+                                    // Order: seek then play seems safer to ensure "play" is the final command,
+                                    // but we previously tried play then seek.
+                                    // Let's do seek then play.
+                                    player.seekTo(seconds, true);
+                                    player.playVideo();
+                                }
+                                
+                                // Scroll video into view
+                                const videoWrapper = document.querySelector('.video-wrapper');
+                                if (videoWrapper) {
+                                    videoWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            }
+                        });
+                    });
+
                 } else {
                     console.error("Marked library not loaded");
                     document.getElementById("article-content").style.display = 'none';
