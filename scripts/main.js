@@ -979,9 +979,12 @@ async function loadArticlePage(isPagesDir) {
             } else {
                  let mdText = await mdResponse.text();
                  
-                 // To avoice a race condition: Replace placeholder with current value of gameName
+                 // Fix for race condition: Replace placeholder with current value of gameName ONLY if it's loaded.
                  // This handles the case where gameName fetch finished BEFORE markdown fetch.
-                 mdText = mdText.replace(/\$\{GAME_NAME\}/g, gameName);
+                 // If it's still default ("Roblox Game"), we leave the placeholder for the async updater to find later.
+                 if (gameName !== "Roblox Game") {
+                    mdText = mdText.replace(/\$\{GAME_NAME\}/g, gameName);
+                 }
                  // Wait, we need to wait for game name if we want to render correctly?
                  // Or we render with placeholder and then update?
                  // The user asked "it should fetch it like so inside of the article page".
