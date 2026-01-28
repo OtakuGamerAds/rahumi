@@ -751,7 +751,8 @@ function getVideoId(url) {
 function getRobloxPlaceId(url) {
     if (!url) return null;
     // Standard URL: https://www.roblox.com/games/920587237/Adopt-Me
-    const match = url.match(/roblox\.com\/games\/(\d+)\//);
+    // Also handles: https://www.roblox.com/games/920587237 (no trailing slash or name)
+    const match = url.match(/roblox\.com\/games\/(\d+)/);
     return match ? match[1] : null;
 }
 
