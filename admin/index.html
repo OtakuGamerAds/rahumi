@@ -812,24 +812,7 @@
             </label>
             <div style="position: relative;">
                 <textarea id="add-article-content"></textarea>
-                <!-- Progress Overlay -->
-                <div id="ai-progress" class="ai-progress-overlay">
-                    <h3 style="margin-bottom: 1.5rem; color: var(--primary-dark);">Creation in Progress...</h3>
-                    <div id="realtime-logs" style="
-                        width: 100%;
-                        max-width: 400px;
-                        background: rgba(0,0,0,0.05);
-                        border-radius: 8px;
-                        padding: 1rem;
-                        font-family: monospace;
-                        font-size: 0.9rem;
-                    ">
-                        <div class="log-entry" style="color: var(--text-color); margin-bottom: 0.5rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.5rem;">
-                            <i class="fas fa-satellite-dish"></i> Connecting to AI...
-                        </div>
-                    </div>
-                    <p id="progress-timer" style="margin-top: 1.5rem; color: var(--text-light); font-size: 0.9rem; font-family: monospace;">00:00</p>
-                </div>
+                <!-- Progress Overlay Removed (Replaced by WindowManager) -->
             </div>
           </div>
           <div class="modal-actions">
@@ -1459,13 +1442,127 @@
         }
       }
 
+      // ==================== OS WINDOW MANAGER ====================
+      const WindowManager = {
+          windows: {},
+          zIndex: 1000,
+
+          create(id, title, initialContent = "") {
+              if (this.windows[id]) {
+                  this.open(id);
+                  return this.windows[id];
+              }
+
+              const win = document.createElement('div');
+              win.className = 'os-window';
+              win.id = id;
+              win.style.top = '100px';
+              win.style.left = '100px';
+              // Initial Size
+              win.style.width = '400px';
+              win.style.height = '300px';
+
+              win.innerHTML = `
+                  <div class="os-window-header">
+                      <span class="os-window-title">${title}</span>
+                      <div class="os-window-controls">
+                          <button onclick="WindowManager.close('${id}')">×</button>
+                      </div>
+                  </div>
+                  <div class="os-window-content">${initialContent}</div>
+                  <div class="os-resize-handle"></div>
+              `;
+
+              document.body.appendChild(win);
+              this.windows[id] = win;
+              
+              this.makeDraggable(win);
+              this.makeResizable(win);
+              
+              win.addEventListener('mousedown', () => this.bringToFront(win));
+              
+              this.open(id);
+              return win;
+          },
+
+          open(id) {
+              const win = this.windows[id];
+              if (win) {
+                  win.classList.remove('closed');
+                  this.bringToFront(win);
+              }
+          },
+
+          close(id) {
+              const win = this.windows[id];
+              if (win) {
+                  win.classList.add('closed');
+              }
+          },
+
+          bringToFront(win) {
+              this.zIndex++;
+              win.style.zIndex = this.zIndex;
+          },
+
+          makeDraggable(win) {
+              const header = win.querySelector('.os-window-header');
+              let isDragging = false;
+              let offsetX, offsetY;
+
+              header.addEventListener('mousedown', (e) => {
+                  isDragging = true;
+                  offsetX = e.clientX - win.offsetLeft;
+                  offsetY = e.clientY - win.offsetTop;
+                  this.bringToFront(win);
+              });
+
+              document.addEventListener('mousemove', (e) => {
+                  if (isDragging) {
+                      win.style.left = `${e.clientX - offsetX}px`;
+                      win.style.top = `${e.clientY - offsetY}px`;
+                  }
+              });
+
+              document.addEventListener('mouseup', () => {
+                  isDragging = false;
+              });
+          },
+
+          makeResizable(win) {
+              const handle = win.querySelector('.os-resize-handle');
+              let isResizing = false;
+              let originalWidth, originalHeight, originalX, originalY;
+
+              handle.addEventListener('mousedown', (e) => {
+                  e.stopPropagation(); // Prevent drag
+                  isResizing = true;
+                  originalWidth = parseFloat(getComputedStyle(win, null).getPropertyValue('width').replace('px', ''));
+                  originalHeight = parseFloat(getComputedStyle(win, null).getPropertyValue('height').replace('px', ''));
+                  originalX = e.clientX;
+                  originalY = e.clientY;
+                  this.bringToFront(win);
+              });
+
+              document.addEventListener('mousemove', (e) => {
+                  if (isResizing) {
+                      const width = originalWidth + (e.clientX - originalX);
+                      const height = originalHeight + (e.clientY - originalY);
+                      win.style.width = `${width}px`;
+                      win.style.height = `${height}px`;
+                  }
+              });
+
+              document.addEventListener('mouseup', () => {
+                  isResizing = false;
+              });
+          }
+      };
+
       // ==================== AI GENERATION ====================
       const generateArticleBtn = document.getElementById(
         "generate-article-btn",
       );
-      const aiProgress = document.getElementById("ai-progress");
-      const progressTimer = document.getElementById("progress-timer");
-      const realtimeLogs = document.getElementById("realtime-logs");
 
       // Generate UUID helper
       function uuidv4() {
@@ -1495,12 +1592,24 @@
         const originalText = generateArticleBtn.innerHTML;
         generateArticleBtn.disabled = true;
         
-        // Setup Real-time Logging
+        // Setup Window for Logs
         const requestId = uuidv4();
-        aiProgress.classList.add('show');
-        realtimeLogs.innerHTML = `<div class="log-entry" style="color: var(--text-color); margin-bottom: 0.5rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.5rem;">
-                            <i class="fas fa-satellite-dish"></i> Initializing request...
-                        </div>`;
+        
+        // Create or Open Window
+        const logWindow = WindowManager.create('ai_logs_' + requestId, 'AI Generation Logs');
+        const contentDiv = logWindow.querySelector('.os-window-content');
+        
+        contentDiv.innerHTML = `
+            <div id="logs-${requestId}" style="font-family: monospace; font-size: 0.9rem;">
+                <div class="log-entry" style="color: var(--text-color); margin-bottom: 0.5rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.5rem;">
+                    <i class="fas fa-satellite-dish"></i> Initializing request...
+                </div>
+            </div>
+            <p id="timer-${requestId}" style="margin-top: 1rem; color: var(--text-light); font-size: 0.8rem; font-family: monospace; border-top: 1px solid var(--primary-light); padding-top: 5px;">00:00</p>
+        `;
+        
+        const realtimeLogs = document.getElementById(`logs-${requestId}`);
+        const progressTimer = document.getElementById(`timer-${requestId}`);
 
         // Start Timer
         let startTime = Date.now();
@@ -1508,7 +1617,7 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
             const secs = (elapsed % 60).toString().padStart(2, '0');
-            progressTimer.textContent = `${mins}:${secs}`;
+            if(progressTimer) progressTimer.textContent = `${mins}:${secs}`;
         }, 1000);
 
         // Listen to Firestore
@@ -1530,7 +1639,7 @@
                     logEntry.innerHTML = `<i class="fas ${icon}"></i> ${data.message}`;
                     realtimeLogs.appendChild(logEntry);
                     // Scroll to bottom
-                    realtimeLogs.scrollTop = realtimeLogs.scrollHeight;
+                    contentDiv.scrollTop = contentDiv.scrollHeight;
                 }
             }, (error) => {
                 console.error("Snapshot listener error:", error);
@@ -1557,12 +1666,16 @@
           }
         } catch (error) {
           console.error("Generation failed:", error);
-          alert("Failed to generate article: " + error.message);
-          textarea.placeholder = "Error generating article.";
+          // Alert user but keep logs open so they can see why
+          const errorDiv = document.createElement('div');
+          errorDiv.style.color = 'red';
+          errorDiv.style.marginTop = '1rem';
+          errorDiv.fontWeight = 'bold';
+          errorDiv.textContent = "Generation Failed! See logs above.";
+          realtimeLogs.appendChild(errorDiv);
         } finally {
           clearInterval(timerInterval);
           if (unsubscribe) unsubscribe(); // Stop listening
-          aiProgress.classList.remove('show');
           generateArticleBtn.disabled = false;
           generateArticleBtn.innerHTML = originalText;
         }
