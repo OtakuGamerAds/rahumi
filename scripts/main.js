@@ -786,11 +786,7 @@ async function getRobloxGameName(placeId) {
     }
 }
 
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
+
 
 /* Article Page Logic */
 let player;
@@ -853,12 +849,57 @@ async function loadArticlePage(isPagesDir) {
              getRobloxGameName(placeId).then(name => {
                  if (name) {
                      gameName = name;
-                     gameName = name;
-                     // Update all placeholders
-                     const placeholders = document.querySelectorAll('.game-name-placeholder');
-                     placeholders.forEach(el => el.textContent = gameName);
-                     
+                     // If title is currently generic or loading, update it? 
+                     // Actually, we want to replace ${GAME_NAME} everywhere.
+                     // We will store it in a global or accessible scope to update content when it loads.
+                     // But for now, let's just log it.
                      console.log("Resolved Game Name:", gameName);
+                     
+                     // If content is already loaded, update it locally
+                     const contentDiv = document.getElementById("article-content");
+                     if (contentDiv) {
+                         // This is a naive replacement on HTML. 
+                         // Better to re-render or replace text content carefully.
+                         // But since we control the placeholder, it's fairly safe.
+                         contentDiv.innerHTML = contentDiv.innerHTML.split('${GAME_NAME}').join(gameName);
+                         
+                         // Re-attach listeners for timestamps since we nuked the DOM
+                         contentDiv.querySelectorAll('.timestamp-link').forEach(link => {
+                            link.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                const timeStr = link.getAttribute('data-time');
+                                const parts = timeStr.split(':').map(Number);
+                                let seconds = 0;
+                                if (parts.length === 2) {
+                                    seconds = parts[0] * 60 + parts[1];
+                                } else if (parts.length === 3) {
+                                    seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+                                }
+    
+                                if (player && typeof player.loadVideoById === 'function') {
+                                    const playerState = player.getPlayerState();
+                                    if (playerState === -1 || playerState === 5) {
+                                        player.loadVideoById({
+                                            videoId: id,
+                                            startSeconds: seconds
+                                        });
+                                    } else {
+                                        player.seekTo(seconds, true);
+                                        player.playVideo();
+                                    }
+                                    const videoWrapper = document.querySelector('.video-wrapper');
+                                    if (videoWrapper) {
+                                        videoWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }
+                                }
+                            });
+                        });
+                         
+                         // Update Title if it contains placeholder (it might not, since we set it below)
+                         if (document.title.includes('${GAME_NAME}')) {
+                             document.title = document.title.split('${GAME_NAME}').join(gameName);
+                         }
+                     }
                  }
              });
         }
@@ -934,9 +975,20 @@ async function loadArticlePage(isPagesDir) {
             } else {
                  let mdText = await mdResponse.text();
                  
-                 // Use a placeholder SPAN that we can update later using DOM manipulation.
-                 // This handles all race conditions cleanly.
-                 mdText = mdText.replace(/\$\{GAME_NAME\}/g, `<span class="game-name-placeholder">${gameName}</span>`);
+                 // Replace ${GAME_NAME} with actual name if available, otherwise just keep it or replace with generic?
+                 // Wait, we need to wait for game name if we want to render correctly?
+                 // Or we render with placeholder and then update?
+                 // The user asked "it should fetch it like so inside of the article page".
+                 
+                 // If we have the game name already (unlikely since it's async), use it.
+                 // Otherwise, we might want to wait for it OR update DOM later.
+                 // In the fetch block above, we updated innerHTML. 
+                 // So here, we just render. But wait, if we render fast, the update logic above runs later and updates it. 
+                 // If fetch is slow, we see ${GAME_NAME}... 
+                 // Maybe replacing with "Loading..." or a spinner isn't ideal.
+                 // Let's replace with a temporary "this game" string if needed, or just let the async updater handle it.
+                 // Actually, let's try to await it if it's fast? No, don't block render.
+                 // We will update the REPLACE logic above to be robust.
                  
                  // Process Timestamps: (m:ss) -> Link
                  // Regex matches (m:ss) or (mm:ss) or (h:mm:ss) inside parentheses
