@@ -979,7 +979,9 @@ async function loadArticlePage(isPagesDir) {
             } else {
                  let mdText = await mdResponse.text();
                  
-                 // Replace ${GAME_NAME} with actual name if available, otherwise just keep it or replace with generic?
+                 // To avoice a race condition: Replace placeholder with current value of gameName
+                 // This handles the case where gameName fetch finished BEFORE markdown fetch.
+                 mdText = mdText.replace(/\$\{GAME_NAME\}/g, gameName);
                  // Wait, we need to wait for game name if we want to render correctly?
                  // Or we render with placeholder and then update?
                  // The user asked "it should fetch it like so inside of the article page".
