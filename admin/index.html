@@ -1265,13 +1265,22 @@
       function openEditModal(card, mapData) {
         editingItemCard = card;
 
-        // Update Modal Title
-        addModal.querySelector("h2").textContent = card
-          ? "✎ Edit Item"
-          : "➕ Add New Item";
-        addModal.querySelector('button[type="submit"]').textContent = card
-          ? "Save Changes"
-          : "Add Item";
+        // Ensure Window Exists
+        let win = WindowManager.windows['edit-item-window'];
+        if (!win) {
+            const form = document.getElementById('add-form');
+            // Remove form from hidden modal container if it's there
+            if (form.parentNode) form.parentNode.removeChild(form);
+            form.style.display = 'block'; // Ensure visible
+            win = WindowManager.create('edit-item-window', 'Edit Item', form);
+        }
+
+        // Update Window Title
+        const titleEl = win.querySelector('.os-window-title');
+        const submitBtn = document.getElementById('add-form').querySelector('button[type="submit"]');
+
+        titleEl.textContent = card ? "✎ Edit Item" : "➕ Add New Item";
+        submitBtn.textContent = card ? "Save Changes" : "Add Item";
 
         // Fill form
         if (mapData) {
@@ -1283,7 +1292,7 @@
           addForm.reset();
         }
 
-        addModal.classList.remove("hidden");
+        WindowManager.open('edit-item-window');
 
         // Populate textarea: try existing data first, then fetch file
         const textarea = document.getElementById("add-article-content");
@@ -1327,7 +1336,7 @@
       });
 
       cancelAddBtn.addEventListener("click", () => {
-        addModal.classList.add("hidden");
+        WindowManager.close('edit-item-window');
       });
 
       /*
@@ -1369,7 +1378,7 @@
         const count = mapsList.querySelectorAll(".map-card").length;
         channelInfo.textContent = `${currentChannel} — ${count} items`;
 
-        addModal.classList.add("hidden");
+        WindowManager.close('edit-item-window');
       });
 
       // ==================== SAVE CHANGES ====================
@@ -1469,9 +1478,16 @@
                           <button onclick="WindowManager.close('${id}')">×</button>
                       </div>
                   </div>
-                  <div class="os-window-content">${initialContent}</div>
+                  <div class="os-window-content"></div>
                   <div class="os-resize-handle"></div>
               `;
+
+              const contentContainer = win.querySelector('.os-window-content');
+              if (typeof initialContent === 'string') {
+                  contentContainer.innerHTML = initialContent;
+              } else if (initialContent instanceof Element) {
+                  contentContainer.appendChild(initialContent);
+              }
 
               document.body.appendChild(win);
               this.windows[id] = win;
