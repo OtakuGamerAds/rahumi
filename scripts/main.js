@@ -927,7 +927,7 @@ async function loadArticlePage(isPagesDir) {
                     // Progressive Enhancement: Replace placeholder with a hook AFTER parsing
                     // This ensures the span is not escaped by the markdown parser.
                     parsedHtml = parsedHtml.replace(/\$\{GAME_NAME\}/g, `
-                        <span class="dynamic-game-name youtuber-badge" style="cursor: default; text-decoration: none;">
+                        <span class="dynamic-game-name youtuber-badge" style="cursor: pointer; text-decoration: none;" onclick="scrollToPlayButton(event)">
                             <i class="fas fa-gamepad" style="margin-left:5px;"></i>
                             <span class="game-name-text">جاري تحميل اسم اللعبة...</span>
                         </span>
@@ -1012,4 +1012,22 @@ async function loadArticlePage(isPagesDir) {
             `;
         }
     }
+}
+
+function scrollToPlayButton(event) {
+    if (event) event.stopPropagation();
+    
+    const playBtn = document.getElementById("game-play-btn");
+    if (!playBtn) return;
+    
+    // Smooth scroll to button
+    playBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Add temporary animation class
+    playBtn.classList.add('pulse-once');
+    
+    // Remove class after animation completes (3 iterations of 0.5s = 1.5s)
+    setTimeout(() => {
+        playBtn.classList.remove('pulse-once');
+    }, 1500);
 }
