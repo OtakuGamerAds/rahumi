@@ -241,6 +241,10 @@ footer p {
     box-shadow: 0 0 0 0 rgba(58, 176, 0, 0);
   }
 }
+
+.pulse-once {
+  animation: videosPulse 0.5s ease-in-out 3;
+}
 /* YouTuber Badge Style */
 .youtuber-badge {
   display: inline-flex;
@@ -273,7 +277,6 @@ footer p {
     border-color: #555;
     color: #f0f0f0;
   }
-
 }
 
 .youtuber-badge img {
@@ -327,8 +330,12 @@ footer p {
 }
 
 @keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
@@ -338,23 +345,22 @@ footer p {
   }
 }
 
-
 /* Article Timestamp Links */
 .timestamp-link {
-    color: var(--primary-color);
-    font-weight: bold;
-    cursor: pointer;
-    background-color: rgba(46, 204, 113, 0.1);
-    padding: 2px 6px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    border-bottom: 2px solid transparent; /* Prepare for hover */
+  color: var(--primary-color);
+  font-weight: bold;
+  cursor: pointer;
+  background-color: rgba(46, 204, 113, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent; /* Prepare for hover */
 }
 
 .timestamp-link:hover {
-    background-color: var(--primary-color);
-    color: white;
-    text-decoration: none;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: var(--primary-color);
+  color: white;
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
