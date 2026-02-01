@@ -357,8 +357,6 @@ async function fetchAndRenderMaps(isPagesDir) {
       "?t=" +
       new Date().getTime();
 
-    console.log("Fetching maps from:", configPath);
-
     const response = await fetch(configPath);
     if (!response.ok)
       throw new Error(
