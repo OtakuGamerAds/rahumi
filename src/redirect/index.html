@@ -274,8 +274,12 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    // Merge arrays from all keys (flatten)
-                    allLinks = Object.values(data).reduce((acc, curr) => acc.concat(curr), []);
+                    // Merge links arrays from all channels (flatten)
+                    // Each channel now has { list_number, links: [...] }
+                    allLinks = Object.values(data).reduce((acc, channel) => {
+                        const links = channel.links || channel; // Support new and old format
+                        return acc.concat(links);
+                    }, []);
                 }
 
                 if (allLinks.length > 0) {
