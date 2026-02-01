@@ -11,12 +11,12 @@ function gtag() {
 
 // Check localStorage for saved consent
 function loadConsent() {
-  const savedConsent = localStorage.getItem('consent_status');
+  const savedConsent = localStorage.getItem("consent_status");
 
-  if (savedConsent === 'granted') {
-    updateConsent('granted');
-  } else if (savedConsent === 'denied') {
-    updateConsent('denied');
+  if (savedConsent === "granted") {
+    updateConsent("granted");
+  } else if (savedConsent === "denied") {
+    updateConsent("denied");
   } else {
     // No consent saved, show banner
     showBanner();
@@ -25,33 +25,41 @@ function loadConsent() {
 
 function updateConsent(status) {
   const consentMode = {
-    'ad_storage': status,
-    'ad_user_data': status,
-    'ad_personalization': status,
-    'analytics_storage': status
+    ad_storage: status,
+    ad_user_data: status,
+    ad_personalization: status,
+    analytics_storage: status,
   };
 
-  gtag('consent', 'update', consentMode);
-  localStorage.setItem('consent_status', status);
-  
-  if (status === 'granted') {
+  gtag("consent", "update", consentMode);
+  localStorage.setItem("consent_status", status);
+
+  if (status === "granted") {
     // Microsoft Clarity
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    (function (c, l, a, r, i, t, y) {
+      c[a] =
+        c[a] ||
+        function () {
+          (c[a].q = c[a].q || []).push(arguments);
+        };
+      t = l.createElement(r);
+      t.async = 1;
+      t.src = "https://www.clarity.ms/tag/" + i;
+      y = l.getElementsByTagName(r)[0];
+      y.parentNode.insertBefore(t, y);
     })(window, document, "clarity", "script", "v7nf7q9wge");
   }
 }
 
 function showBanner() {
-  const banner = document.createElement('div');
-  banner.id = 'consent-banner';
+  const banner = document.createElement("div");
+  banner.id = "consent-banner";
   banner.innerHTML = `
     <div class="consent-content">
       <p>
         🍪 <strong>ملفات تعريف الارتباط (Cookies)</strong><br>
-        نستخدم ملفات تعريف الارتباط لتحسين تجربتك وجمع إحصائيات الاستخدام. هل توافق؟
+        نستخدم ملفات تعريف الارتباط لتحسين تجربتك وجمع إحصائيات الاستخدام.
+        بالموافقة، فإنك تقبل <a href="/privacy/" style="color: var(--primary-color); text-decoration: underline;">سياسة الخصوصية</a> و <a href="/terms/" style="color: var(--primary-color); text-decoration: underline;">شروط الاستخدام</a> الخاصة بنا.
       </p>
       <div class="consent-actions">
         <button id="consent-reject" class="btn btn-secondary">رفض</button>
@@ -61,23 +69,23 @@ function showBanner() {
   `;
   document.body.appendChild(banner);
 
-  document.getElementById('consent-accept').addEventListener('click', () => {
-    updateConsent('granted');
+  document.getElementById("consent-accept").addEventListener("click", () => {
+    updateConsent("granted");
     hideBanner();
   });
 
-  document.getElementById('consent-reject').addEventListener('click', () => {
-    updateConsent('denied');
+  document.getElementById("consent-reject").addEventListener("click", () => {
+    updateConsent("denied");
     hideBanner();
   });
 }
 
 function hideBanner() {
-  const banner = document.getElementById('consent-banner');
+  const banner = document.getElementById("consent-banner");
   if (banner) {
     banner.remove();
   }
 }
 
 // Initialize on load
-window.addEventListener('load', loadConsent);
+window.addEventListener("load", loadConsent);
