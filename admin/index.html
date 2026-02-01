@@ -1112,24 +1112,39 @@
       }
 
       function updateAllPageViewBadges() {
-        console.log("Current Analytics Data:", pageViewsData);
+        console.log("Analytics Update: Processing badges...");
+        console.log("Data:", pageViewsData);
+        
+        let updateCount = 0;
         document.querySelectorAll(".page-views-badge").forEach(badge => {
           const videoId = badge.dataset.videoId;
           if (videoId) {
             let totalViews = 0;
-            // Iterate through all paths provided by GA4
+            let matchCount = 0;
+            
             for (const [p, v] of Object.entries(pageViewsData)) {
-              // Match if the path contains the video ID (case-insensitive)
               if (p.toLowerCase().includes(videoId.toLowerCase())) {
                 totalViews += v;
+                matchCount++;
               }
             }
             
             badge.textContent = `👁️ ${formatNumber(totalViews)}`;
             badge.classList.remove("loading");
             badge.title = `${totalViews.toLocaleString()} مشاهدة (آخر 30 يوم)`;
+            updateCount++;
+            
+            if (totalViews > 0) {
+              console.log(`Matched ID ${videoId}: ${totalViews} views in ${matchCount} paths`);
+            } else {
+              // Only log occasional misses or first few to avoid spam
+              if (updateCount < 10) {
+                console.log(`No matches for ID ${videoId} among ${Object.keys(pageViewsData).length} paths`);
+              }
+            }
           }
         });
+        console.log(`Updated ${updateCount} page view badges.`);
       }
 
       function formatNumber(num) {
