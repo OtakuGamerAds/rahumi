@@ -1357,8 +1357,7 @@
           const preview = card.querySelector(".video-preview");
           preview.addEventListener("click", (e) => {
             e.stopPropagation(); // prevent card click or other bubbling
-            preview.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-            preview.classList.add("playing");
+            window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
           });
         }
 
