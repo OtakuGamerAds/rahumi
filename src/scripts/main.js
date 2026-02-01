@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadConfig();
 });
 
-function updateMetaTags(title, description, keywords) {
+function updateMetaTags(title, description, keywords, image) {
   // Update Title
   if (title) document.title = title;
 
@@ -101,6 +101,21 @@ function updateMetaTags(title, description, keywords) {
     document.head.appendChild(ogDesc);
   }
   if (description) ogDesc.content = description;
+
+  // Update OG Image
+  if (image) {
+    let ogImage = document.querySelector('meta[property="og:image"]');
+    if (!ogImage) {
+      ogImage = document.createElement("meta");
+      ogImage.setAttribute("property", "og:image");
+      document.head.appendChild(ogImage);
+    }
+    ogImage.content = image.startsWith("http")
+      ? image
+      : window.location.origin +
+        "/" +
+        image.replace(/^\.\//, "").replace(/^\.\.\//, "");
+  }
 }
 
 let enableRedirection = true; // Default
@@ -137,6 +152,19 @@ async function loadConfig() {
 
     if (data.collaborators) {
       window.siteCollaborators = data.collaborators;
+    }
+
+    // Apply Site-Wide SEO (Homepage & Fallback)
+    // Only apply if we are NOT on an article page (which handles its own SEO)
+    if (!window.location.pathname.includes("article/")) {
+      const pageTitle = data.profile.name;
+      const pageDesc = data.profile.intro_text;
+      const pageImage = data.profile.avatar_url;
+      // Default keywords for main pages
+      const pageKeywords =
+        "rahumi, رحومي, roblox, روبلوكس, games, العاب, secrets, اسرار";
+
+      updateMetaTags(pageTitle, pageDesc, pageKeywords, pageImage);
     }
 
     populateContent(data, isPagesDir);
@@ -802,8 +830,10 @@ async function loadArticlePage(isPagesDir) {
       const pageTitle = `${finalTitle} - رحومي`;
       const description = `استمتع بمشاهدة ${finalTitle} وتعرف على ${gameName}. تابعنا على رحومي (Rahumi) للمزيد من فيديوهات ومابات روبلوكس الممتعة!`;
       const keywords = `rahumi, رحومي, roblox, روبلوكس, ${gameName}, ${finalTitle}, video, فيديو`;
+      // Use standard avatar for articles, or could use video thumbnail if available
+      const image = `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
 
-      updateMetaTags(pageTitle, description, keywords);
+      updateMetaTags(pageTitle, description, keywords, image);
     });
 
     // Setup Video with YouTube API
