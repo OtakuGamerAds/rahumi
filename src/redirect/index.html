@@ -275,10 +275,9 @@
                 if (response.ok) {
                     const data = await response.json();
                     // Merge links arrays from all channels (flatten)
-                    // Each channel now has { list_number, links: [...] }
+                    // Each channel has { list_number, links: [...] }
                     allLinks = Object.values(data).reduce((acc, channel) => {
-                        const links = channel.links || channel; // Support new and old format
-                        return acc.concat(links);
+                        return acc.concat(channel.links);
                     }, []);
                 }
 

@@ -1,9 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-const CREDENTIALS_PATH = 'credentials.json';
-const LINKS_PATH = 'config/links.json';
+const CREDENTIALS_PATH = "credentials.json";
+const LINKS_PATH = "config/links.json";
 
 const SYSTEM_PROMPT = `
 ### **System Prompt: صانع مقالات رحومي الاحترافي**
@@ -59,87 +59,104 @@ const USER_PROMPT_TEMPLATE = `
 `;
 
 async function main() {
-    try {
-        console.log("🚀 Starting Article Generation Process...");
+  try {
+    console.log("🚀 Starting Article Generation Process...");
 
-        if (!fs.existsSync(CREDENTIALS_PATH)) throw new Error(`Credentials file not found at ${CREDENTIALS_PATH}`);
-        const { GEMINI_API_KEY } = JSON.parse(fs.readFileSync(CREDENTIALS_PATH, 'utf8'));
-        if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not found");
+    if (!fs.existsSync(CREDENTIALS_PATH))
+      throw new Error(`Credentials file not found at ${CREDENTIALS_PATH}`);
+    const { GEMINI_API_KEY } = JSON.parse(
+      fs.readFileSync(CREDENTIALS_PATH, "utf8"),
+    );
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not found");
 
-        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
-        if (!fs.existsSync(LINKS_PATH)) throw new Error(`Links file not found at ${LINKS_PATH}`);
-        const linksData = JSON.parse(fs.readFileSync(LINKS_PATH, 'utf8'));
+    if (!fs.existsSync(LINKS_PATH))
+      throw new Error(`Links file not found at ${LINKS_PATH}`);
+    const linksData = JSON.parse(fs.readFileSync(LINKS_PATH, "utf8"));
 
-        const targetVideoUrl = "https://youtu.be/X4UvIIZ4vos";
-        let targetItem = null;
+    const targetVideoUrl = "https://youtu.be/X4UvIIZ4vos";
+    let targetItem = null;
 
-        for (const channel in linksData) {
-            targetItem = linksData[channel].find(item => item.video_link === targetVideoUrl);
-            if (targetItem) break;
-        }
-
-        if (!targetItem) throw new Error(`Target video ${targetVideoUrl} not found`);
-
-        const videoIdMatches = targetItem.video_link.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([^&]+)/);
-        const videoId = videoIdMatches ? videoIdMatches[1] : null;
-
-        if (!videoId) throw new Error(`Invalid video ID in ${targetItem.video_link}`);
-
-        console.log(`🎥 Target: ${videoId} | ${targetItem.map_link}`);
-
-        const modelName = "gemini-2.5-pro";
-        console.log(`🤖 Model: ${modelName}`);
-
-        const contents = [
-             {
-                role: 'user',
-                parts: [
-                    { fileData: { fileUri: targetItem.video_link, mimeType: "video/mp4" } },
-                    { text: USER_PROMPT_TEMPLATE }
-                ]
-             }
-        ];
-
-        console.log("⏳ Processing video...");
-
-        const response = await ai.models.generateContent({
-            model: modelName,
-            contents: contents,
-            config: {
-                systemInstruction: SYSTEM_PROMPT,
-                temperature: 0.7,
-                safetySettings: [
-                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                ]
-            }
-        });
-
-        const generatedText = response.text;
-        
-        if (!generatedText) {
-             console.error("Response:", JSON.stringify(response, null, 2));
-             throw new Error("No text generated.");
-        }
-
-        console.log("✅ Complete!");
-
-        const outputDir = path.join("assets", "articles");
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir, { recursive: true });
-        }
-
-        const outputPath = path.join(outputDir, `${videoId}.md`);
-        fs.writeFileSync(outputPath, generatedText);
-
-        console.log(`💾 Saved to: ${outputPath}`);
-
-    } catch (error) {
-        console.error("❌ Error:", error.message);
+    for (const channel in linksData) {
+      targetItem = linksData[channel].links.find(
+        (item) => item.video_link === targetVideoUrl,
+      );
+      if (targetItem) break;
     }
+
+    if (!targetItem)
+      throw new Error(`Target video ${targetVideoUrl} not found`);
+
+    const videoIdMatches = targetItem.video_link.match(
+      /(?:youtu\.be\/|youtube\.com\/watch\?v=)([^&]+)/,
+    );
+    const videoId = videoIdMatches ? videoIdMatches[1] : null;
+
+    if (!videoId)
+      throw new Error(`Invalid video ID in ${targetItem.video_link}`);
+
+    console.log(`🎥 Target: ${videoId} | ${targetItem.map_link}`);
+
+    const modelName = "gemini-2.5-pro";
+    console.log(`🤖 Model: ${modelName}`);
+
+    const contents = [
+      {
+        role: "user",
+        parts: [
+          {
+            fileData: { fileUri: targetItem.video_link, mimeType: "video/mp4" },
+          },
+          { text: USER_PROMPT_TEMPLATE },
+        ],
+      },
+    ];
+
+    console.log("⏳ Processing video...");
+
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: contents,
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        temperature: 0.7,
+        safetySettings: [
+          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_NONE",
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_NONE",
+          },
+        ],
+      },
+    });
+
+    const generatedText = response.text;
+
+    if (!generatedText) {
+      console.error("Response:", JSON.stringify(response, null, 2));
+      throw new Error("No text generated.");
+    }
+
+    console.log("✅ Complete!");
+
+    const outputDir = path.join("assets", "articles");
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const outputPath = path.join(outputDir, `${videoId}.md`);
+    fs.writeFileSync(outputPath, generatedText);
+
+    console.log(`💾 Saved to: ${outputPath}`);
+  } catch (error) {
+    console.error("❌ Error:", error.message);
+  }
 }
 
 main();

@@ -98,61 +98,61 @@ class Queue {
 }
 
 async function retryArticle(ai, item) {
-    const videoId = item.videoId;
-    console.log(`⏳ Retrying: ${videoId}`);
+  const videoId = item.videoId;
+  console.log(`⏳ Retrying: ${videoId}`);
 
-    const modelName = "gemini-2.5-pro"; // User requested model
-    const contents = [
-        {
-        role: "user",
-        parts: [
-            { fileData: { fileUri: item.video_link, mimeType: "video/mp4" } },
-            { text: USER_PROMPT_TEMPLATE },
+  const modelName = "gemini-2.5-pro"; // User requested model
+  const contents = [
+    {
+      role: "user",
+      parts: [
+        { fileData: { fileUri: item.video_link, mimeType: "video/mp4" } },
+        { text: USER_PROMPT_TEMPLATE },
+      ],
+    },
+  ];
+
+  try {
+    console.log(`➡️ Sending request for: ${videoId}`);
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: contents,
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        temperature: 0.7,
+        safetySettings: [
+          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_NONE",
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_NONE",
+          },
         ],
-        },
-    ];
+      },
+    });
+    console.log(`⬅️ Received response for: ${videoId}`);
 
-    try {
-        console.log(`➡️ Sending request for: ${videoId}`);
-        const response = await ai.models.generateContent({
-        model: modelName,
-        contents: contents,
-        config: {
-            systemInstruction: SYSTEM_PROMPT,
-            temperature: 0.7,
-            safetySettings: [
-            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-            {
-                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                threshold: "BLOCK_NONE",
-            },
-            {
-                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-                threshold: "BLOCK_NONE",
-            },
-            ],
-        },
-        });
-        console.log(`⬅️ Received response for: ${videoId}`);
-
-        const generatedText = response.text;
-        if (!generatedText) {
-             let reason = "Unknown Error";
-             if (response.promptFeedback && response.promptFeedback.blockReason) {
-                reason = `Blocked: ${response.promptFeedback.blockReason}`;
-             }
-             throw new Error(reason);
-        }
-
-        const outputPath = path.join(ARTICLES_DIR, `${videoId}.md`);
-        fs.writeFileSync(outputPath, generatedText);
-        console.log(`✅ Success: ${videoId}`);
-        return { status: "success", item };
-    } catch (error) {
-        console.error(`❌ Failed: ${videoId} - ${error.message}`);
-        return { status: "error", item, error: error.message };
+    const generatedText = response.text;
+    if (!generatedText) {
+      let reason = "Unknown Error";
+      if (response.promptFeedback && response.promptFeedback.blockReason) {
+        reason = `Blocked: ${response.promptFeedback.blockReason}`;
+      }
+      throw new Error(reason);
     }
+
+    const outputPath = path.join(ARTICLES_DIR, `${videoId}.md`);
+    fs.writeFileSync(outputPath, generatedText);
+    console.log(`✅ Success: ${videoId}`);
+    return { status: "success", item };
+  } catch (error) {
+    console.error(`❌ Failed: ${videoId} - ${error.message}`);
+    return { status: "error", item, error: error.message };
+  }
 }
 
 async function main() {
@@ -170,7 +170,8 @@ async function main() {
     const linksData = JSON.parse(fs.readFileSync(LINKS_PATH, "utf8"));
 
     // Target specifically "قناتي الثانية"
-    const channelVideos = linksData["قناتي الثانية"] || [];
+    const channelData = linksData["قناتي الثانية"];
+    const channelVideos = channelData?.links || [];
 
     const failedItems = [];
 
@@ -195,30 +196,32 @@ async function main() {
     const queue = new Queue(3); // Concurrency limit 3
     const results = [];
 
-    const tasks = failedItems.map(item => {
-        return queue.add(() => retryArticle(ai, item))
-            .then(res => results.push(res));
+    const tasks = failedItems.map((item) => {
+      return queue
+        .add(() => retryArticle(ai, item))
+        .then((res) => results.push(res));
     });
 
     await Promise.all(tasks);
 
     // Generate Report
     let reportContent = "# Batch Generation Failure Report\n\n";
-    const errors = results.filter(r => r.status === "error");
+    const errors = results.filter((r) => r.status === "error");
 
     for (const res of errors) {
-        const item = res.item;
-        reportContent += `## Video: [${item.map_name}](${item.video_link})\n`;
-        reportContent += `- **Video ID**: ${item.videoId}\n`;
-        reportContent += `- **Error**: ${res.error}\n`;
-        reportContent += `- **Possible Cause**: Likely content safety filters or API limits.\n\n`;
+      const item = res.item;
+      reportContent += `## Video: [${item.map_name}](${item.video_link})\n`;
+      reportContent += `- **Video ID**: ${item.videoId}\n`;
+      reportContent += `- **Error**: ${res.error}\n`;
+      reportContent += `- **Possible Cause**: Likely content safety filters or API limits.\n\n`;
     }
 
     fs.writeFileSync(REPORT_FILE, reportContent);
     console.log(`\n📄 Report saved to ${REPORT_FILE}`);
-    console.log(`✅ Fixed: ${results.filter(r => r.status === "success").length}`);
+    console.log(
+      `✅ Fixed: ${results.filter((r) => r.status === "success").length}`,
+    );
     console.log(`❌ Still Failed: ${errors.length}`);
-
   } catch (error) {
     console.error("Fatal Error:", error);
   }

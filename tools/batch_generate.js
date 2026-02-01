@@ -175,8 +175,9 @@ async function main() {
     if (!fs.existsSync(LINKS_PATH)) throw new Error(`Links file not found`);
     const linksData = JSON.parse(fs.readFileSync(LINKS_PATH, "utf8"));
 
-    // Filter for "قناتي الثانية" only
-    let allVideos = linksData["قناتي الثانية"] || [];
+    // Get links from the structured format
+    const channelData = linksData["قناتي الثانية"];
+    let allVideos = channelData?.links || [];
 
     console.log(`📋 Total videos found: ${allVideos.length}`);
 

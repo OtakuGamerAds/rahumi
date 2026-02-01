@@ -64,9 +64,19 @@ jobs:
                 fs.mkdirSync('src/assets/articles', { recursive: true });
             }
 
-            channelOrder.forEach(channel => {
+            channelOrder.forEach((channel, index) => {
               if (mapsData[channel]) {
-                linksData[channel] = mapsData[channel].map(item => {
+                // Handle both formats: { list_number, links: [...] } or just [...]
+                const isStructured = !Array.isArray(mapsData[channel]) && mapsData[channel].links;
+                const channelItems = isStructured
+                  ? mapsData[channel].links
+                  : (Array.isArray(mapsData[channel]) ? mapsData[channel] : []);
+                
+                const listNumber = isStructured 
+                  ? (mapsData[channel].list_number ?? index)
+                  : index;
+                
+                const processedItems = channelItems.map(item => {
                     // Extract Video ID
                     let videoId = null;
                     if (item.video_link) {
@@ -82,10 +92,15 @@ jobs:
                     }
                     
                     // Return item without the heavy blog content to keep JSON light
-                    // (Optional: keep it if we want it in JSON too, but better to keep JSON small)
                     const { article_content, ...cleanItem } = item;
                     return cleanItem;
                 });
+
+                // Preserve the structured format
+                linksData[channel] = {
+                  list_number: listNumber,
+                  links: processedItems
+                };
               }
             });
 
