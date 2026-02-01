@@ -859,6 +859,8 @@
         getDoc,
         setDoc,
         onSnapshot,
+        enableNetwork,
+        waitForPendingWrites,
       } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
       import {
         getFunctions,
@@ -901,11 +903,36 @@
       const saveBtn = document.getElementById("save-btn");
       const saveStatus = document.getElementById("save-status");
 
+      // ==================== FIRESTORE INITIALIZATION ====================
+      // Ensure Firestore connection is ready before attempting to load data
+      async function ensureFirestoreReady() {
+        try {
+          console.log("Ensuring Firestore connection is ready...");
+          
+          // Explicitly enable network (in case it was disabled)
+          await enableNetwork(db);
+          
+          // Wait for any pending writes to complete
+          await waitForPendingWrites(db);
+          
+          // Add a small buffer to let WebChannel connection establish
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          
+          console.log("Firestore connection ready.");
+        } catch (error) {
+          console.warn("Error during Firestore initialization:", error);
+          // Don't throw - let the retry logic in getDocWithRetry handle it
+        }
+      }
+
       // ==================== AUTH STATE ====================
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           loginView.classList.add("hidden");
           dashboardView.classList.remove("hidden");
+          
+          // Wait for Firestore to be ready before loading
+          await ensureFirestoreReady();
           await loadContent();
         } else {
           loginView.classList.remove("hidden");
@@ -947,7 +974,7 @@
       });
 
       // ==================== HELPER: RETRY LOGIC ====================
-      async function getDocWithRetry(docRef, retries = 3, delay = 1000) {
+      async function getDocWithRetry(docRef, retries = 3, delay = 2000) {
         try {
           return await getDoc(docRef);
         } catch (error) {
@@ -955,12 +982,12 @@
           const isOffline =
             error.message.includes("offline") ||
             error.code === "unavailable" ||
-            error.message.includes("network");
+            error.message.includes("network") ||
+            error.message.includes("failed-precondition");
 
           if (retries > 0 && isOffline) {
             console.warn(
-              `Firestore getDoc failed. Retrying in ${delay}ms...`,
-              error,
+              `Firestore getDoc failed (${error.code || error.message}). Retrying in ${delay}ms... (${retries} attempts remaining)`,
             );
 
             // Optional: Update loading text
@@ -968,11 +995,11 @@
               loadingIndicator &&
               !loadingIndicator.classList.contains("hidden")
             ) {
-              loadingIndicator.textContent = `الاتصال غير مستقر. جاري المحاولة مرة أخرى... (${retries} محاولات متبقية)`;
+              loadingIndicator.textContent = `Connection issue detected. Retrying... (${retries} attempts left)`;
             }
 
             await new Promise((resolve) => setTimeout(resolve, delay));
-            return getDocWithRetry(docRef, retries - 1, delay * 1.5); // Backoff
+            return getDocWithRetry(docRef, retries - 1, delay * 1.5); // Exponential backoff
           }
           throw error;
         }
