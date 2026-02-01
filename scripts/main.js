@@ -387,8 +387,8 @@ function generateHomeNav(navItems) {
     a.style.display = "block";
     a.style.textAlign = "center";
 
-    // Add text and emoji
-    a.innerHTML = `${videosItem.text} <span style="margin-right: 0.5rem;">🎮</span>`;
+    // Add text and icon
+    a.innerHTML = `${videosItem.text} <i class="fas fa-gamepad" style="margin-right: 0.5rem;"></i>`;
 
     container.appendChild(a);
   }

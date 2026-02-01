@@ -56,14 +56,19 @@ function showBanner() {
   banner.id = "consent-banner";
   banner.innerHTML = `
     <div class="consent-content">
-      <p>
-        🍪 <strong>ملفات تعريف الارتباط (Cookies)</strong><br>
-        نستخدم ملفات تعريف الارتباط لتحسين تجربتك وجمع إحصائيات الاستخدام.
-        بالموافقة، فإنك تقبل <a href="/privacy/" style="color: var(--primary-color); text-decoration: underline;">سياسة الخصوصية</a> و <a href="/terms/" style="color: var(--primary-color); text-decoration: underline;">شروط الاستخدام</a> الخاصة بنا.
-      </p>
-      <div class="consent-actions">
-        <button id="consent-reject" class="btn btn-secondary">رفض</button>
-        <button id="consent-accept" class="btn">موافق</button>
+      <div style="flex: 1;">
+        <p style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-weight: bold; font-size: 1.1em;">
+          <i class="fas fa-cookie-bite" style="color: var(--primary-color);"></i>
+          <span>ملفات تعريف الارتباط (Cookies)</span>
+        </p>
+        <p style="margin: 0; font-size: 0.95em; color: var(--text-light);">
+          نستخدم ملفات تعريف الارتباط لتحسين تجربتك وجمع إحصائيات الاستخدام.
+          بالموافقة، فإنك تقبل <a href="/privacy/" style="color: var(--primary-color); text-decoration: underline; transition: color 0.2s;">سياسة الخصوصية</a> و <a href="/terms/" style="color: var(--primary-color); text-decoration: underline; transition: color 0.2s;">شروط الاستخدام</a> الخاصة بنا.
+        </p>
+      </div>
+      <div class="consent-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <button id="consent-reject" class="btn btn-secondary" style="white-space: nowrap;">رفض الكل</button>
+        <button id="consent-accept" class="btn" style="white-space: nowrap;">موافق</button>
       </div>
     </div>
   `;
