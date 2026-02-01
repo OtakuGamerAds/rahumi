@@ -689,26 +689,7 @@
         opacity: 0.7;
       }
 
-      .play-overlay {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: white;
-        background: rgba(0, 0, 0, 0.6);
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        pointer-events: none;
-      }
 
-      .video-preview.playing .play-overlay {
-        display: none;
-      }
 
       .video-preview-placeholder {
         width: 120px;
@@ -1329,7 +1310,6 @@
           thumbnailHtml = `
             <div class="video-preview" data-video-id="${videoId}" title="Click to play">
                 <img src="${thumbnailUrl}" alt="Thumbnail">
-                <div class="play-overlay"><i class="fas fa-play"></i></div>
             </div>`;
         } else {
           thumbnailHtml = `<div class="video-preview-placeholder"><i class="fas fa-video-slash"></i></div>`;
