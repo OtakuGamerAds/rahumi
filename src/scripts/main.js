@@ -63,6 +63,46 @@ document.addEventListener("DOMContentLoaded", () => {
   loadConfig();
 });
 
+function updateMetaTags(title, description, keywords) {
+  // Update Title
+  if (title) document.title = title;
+
+  // Update Description
+  let metaDesc = document.querySelector('meta[name="description"]');
+  if (!metaDesc) {
+    metaDesc = document.createElement("meta");
+    metaDesc.name = "description";
+    document.head.appendChild(metaDesc);
+  }
+  if (description) metaDesc.content = description;
+
+  // Update Keywords
+  let metaKeywords = document.querySelector('meta[name="keywords"]');
+  if (!metaKeywords) {
+    metaKeywords = document.createElement("meta");
+    metaKeywords.name = "keywords";
+    document.head.appendChild(metaKeywords);
+  }
+  if (keywords) metaKeywords.content = keywords;
+
+  // Update OG Tags (Social Media)
+  let ogTitle = document.querySelector('meta[property="og:title"]');
+  if (!ogTitle) {
+    ogTitle = document.createElement("meta");
+    ogTitle.setAttribute("property", "og:title");
+    document.head.appendChild(ogTitle);
+  }
+  if (title) ogTitle.content = title;
+
+  let ogDesc = document.querySelector('meta[property="og:description"]');
+  if (!ogDesc) {
+    ogDesc = document.createElement("meta");
+    ogDesc.setAttribute("property", "og:description");
+    document.head.appendChild(ogDesc);
+  }
+  if (description) ogDesc.content = description;
+}
+
 let enableRedirection = true; // Default
 
 async function loadConfig() {
@@ -755,10 +795,15 @@ async function loadArticlePage(isPagesDir) {
       : Promise.resolve("Roblox Game");
 
     // Async fetch accurate title if possible
-    fetchVideoTitle(item.video_link).then((fetchedTitle) => {
-      if (fetchedTitle) {
-        document.title = `${fetchedTitle} - رحومي`;
-      }
+    fetchVideoTitle(item.video_link).then(async (fetchedTitle) => {
+      const finalTitle = fetchedTitle || "فيديو روبلوكس";
+      const gameName = await gameNamePromise;
+
+      const pageTitle = `${finalTitle} - رحومي`;
+      const description = `استمتع بمشاهدة ${finalTitle} وتعرف على ${gameName}. تابعنا على رحومي (Rahumi) للمزيد من فيديوهات ومابات روبلوكس الممتعة!`;
+      const keywords = `rahumi, رحومي, roblox, روبلوكس, ${gameName}, ${finalTitle}, video, فيديو`;
+
+      updateMetaTags(pageTitle, description, keywords);
     });
 
     // Setup Video with YouTube API
