@@ -914,7 +914,8 @@
       let hasChanges = false;
       let sortableInstance = null;
       let editingItemCard = null; // Track which card is being edited (null = adding new)
-      let pageViewsData = {}; // Cached analytics: { "/redirect/?v=videoId": 1234, ... }
+      let pageViewsData = {}; // Raw analytics: { "/path": 1234 }
+      let preprocessedViews = {}; // Final mapping: { "videoId": 5678 }
 
       // ==================== DOM ELEMENTS ====================
       const loginView = document.getElementById("login-view");
@@ -1091,6 +1092,25 @@
           
           if (result.data.success) {
             pageViewsData = result.data.pageViews;
+            
+            // Pre-process raw paths into videoId->totalViews map (O(M))
+            preprocessedViews = {};
+            for (const [path, views] of Object.entries(pageViewsData)) {
+              const urlParams = new URLSearchParams(path.split('?')[1] || '');
+              const videoId = urlParams.get('v') || urlParams.get('id');
+              
+              if (videoId) {
+                preprocessedViews[videoId] = (preprocessedViews[videoId] || 0) + views;
+              } else {
+                // Fallback for weird paths or different param names
+                const match = path.match(/[?&](?:v|id)=([^&]+)/i);
+                if (match) {
+                  const vId = match[1];
+                  preprocessedViews[vId] = (preprocessedViews[vId] || 0) + views;
+                }
+              }
+            }
+            
             updateAllPageViewBadges();
           }
         } catch (error) {
@@ -1104,21 +1124,17 @@
       }
 
       function updateAllPageViewBadges() {
-        document.querySelectorAll(".page-views-badge").forEach(badge => {
-          const videoId = badge.dataset.videoId;
-          if (videoId) {
-            let totalViews = 0;
-            
-            for (const [p, v] of Object.entries(pageViewsData)) {
-              if (p.toLowerCase().includes(videoId.toLowerCase())) {
-                totalViews += v;
-              }
+        requestAnimationFrame(() => {
+          document.querySelectorAll(".page-views-badge").forEach(badge => {
+            const videoId = badge.dataset.videoId;
+            if (videoId) {
+              const totalViews = preprocessedViews[videoId] || 0;
+              
+              badge.textContent = `👁️ ${formatNumber(totalViews)}`;
+              badge.classList.remove("loading");
+              badge.title = `${totalViews.toLocaleString()} مشاهدة (آخر 30 يوم)`;
             }
-            
-            badge.textContent = `👁️ ${formatNumber(totalViews)}`;
-            badge.classList.remove("loading");
-            badge.title = `${totalViews.toLocaleString()} مشاهدة (آخر 30 يوم)`;
-          }
+          });
         });
       }
 
@@ -1263,13 +1279,8 @@
             const badge = card.querySelector(".page-views-badge");
             badge.dataset.videoId = videoId;
             // If analytics already loaded, update this badge immediately
-            if (Object.keys(pageViewsData).length > 0) {
-              let views = 0;
-              for (const [p, v] of Object.entries(pageViewsData)) {
-                if (p.toLowerCase().includes(videoId.toLowerCase())) {
-                  views += v;
-                }
-              }
+            if (Object.keys(preprocessedViews).length > 0) {
+              const views = preprocessedViews[videoId] || 0;
               badge.textContent = `👁️ ${formatNumber(views)}`;
               badge.classList.remove("loading");
               badge.title = `${views.toLocaleString()} مشاهدة (آخر 30 يوم)`;
