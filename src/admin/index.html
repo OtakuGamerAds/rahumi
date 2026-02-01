@@ -1675,7 +1675,11 @@
           });
         });
 
-        allChannelsData[currentChannel] = newMaps;
+        if (allChannelsData[currentChannel] && allChannelsData[currentChannel].links) {
+          allChannelsData[currentChannel].links = newMaps;
+        } else {
+          allChannelsData[currentChannel] = newMaps;
+        }
       }
 
       function markChanged() {
