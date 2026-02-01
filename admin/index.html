@@ -1755,10 +1755,17 @@
           });
         });
 
-        if (allChannelsData[currentChannel] && allChannelsData[currentChannel].links) {
+        // Always preserve the structured format { list_number, links }
+        if (allChannelsData[currentChannel] && typeof allChannelsData[currentChannel] === 'object' && !Array.isArray(allChannelsData[currentChannel])) {
+          // Channel already has the correct structure, just update links
           allChannelsData[currentChannel].links = newMaps;
         } else {
-          allChannelsData[currentChannel] = newMaps;
+          // Channel is missing or has wrong structure - create proper structure
+          const existingListNumber = allChannelsData[currentChannel]?.list_number ?? Object.keys(allChannelsData).length;
+          allChannelsData[currentChannel] = {
+            list_number: existingListNumber,
+            links: newMaps
+          };
         }
       }
 
