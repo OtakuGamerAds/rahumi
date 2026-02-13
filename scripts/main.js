@@ -140,10 +140,12 @@ async function loadConfig() {
     }
 
     // Cache busting: Append timestamp to force fresh fetch
+    // When served from 404.html for short URLs, use absolute paths since
+    // the browser's base URL (e.g. /a/42) would break relative paths
+    let configPrefix = isPagesDir ? "../config/" : "config/";
+    if (window.__shortArticleNumber) configPrefix = "/config/";
     const configPath =
-      (isPagesDir ? "../config/site-data.json" : "config/site-data.json") +
-      "?t=" +
-      new Date().getTime();
+      configPrefix + "site-data.json?t=" + new Date().getTime();
 
     const response = await fetch(configPath);
     if (!response.ok) throw new Error("Failed to load config");
@@ -160,7 +162,10 @@ async function loadConfig() {
 
     // Apply Site-Wide SEO (Homepage & Fallback)
     // Only apply if we are NOT on an article page (which handles its own SEO)
-    if (!window.location.pathname.includes("article/")) {
+    const isArticlePath =
+      window.location.pathname.includes("article/") ||
+      window.__shortArticleNumber;
+    if (!isArticlePath) {
       const pageTitle = data.profile.name;
       const pageDesc = data.profile.intro_text;
       const pageImage = data.profile.avatar_url;
@@ -202,7 +207,8 @@ async function loadConfig() {
 
     if (
       window.location.pathname.includes("article/") ||
-      window.location.pathname.includes("article.html")
+      window.location.pathname.includes("article.html") ||
+      window.__shortArticleNumber
     ) {
       loadArticlePage(isPagesDir);
     }
@@ -889,34 +895,49 @@ async function loadArticlePage(isPagesDir) {
   const view = document.getElementById("article-view");
 
   try {
-    // Get ID from URL
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
-
-    if (!id) throw new Error("No video ID specified");
-
-    // Load Links
-    const configPath =
-      (isPagesDir ? `../${CONFIG_FILE}` : CONFIG_FILE) +
-      "?t=" +
-      new Date().getTime();
+    // Load Links — use absolute path when served via 404.html short URL
+    let linksPrefix = isPagesDir ? "../" : "";
+    if (window.__shortArticleNumber) linksPrefix = "/";
+    const configPath = linksPrefix + CONFIG_FILE + "?t=" + new Date().getTime();
     const response = await fetch(configPath);
     if (!response.ok) throw new Error("Failed to load links config");
     const linksData = await response.json();
 
-    // Find Item (Search all channels)
+    // Resolve article: by number (short URL) or by video ID (traditional URL)
+    let id = null;
     let item = null;
-    for (const channel in linksData) {
-      const found = linksData[channel].links.find(
-        (i) => getVideoId(i.video_link) === id,
-      );
-      if (found) {
-        item = found;
-        break;
-      }
-    }
 
-    if (!item) throw new Error("Video not found in database");
+    if (window.__shortArticleNumber) {
+      // Short URL: /a/<number> — find by n field
+      const articleNumber = window.__shortArticleNumber;
+      for (const channel in linksData) {
+        const found = linksData[channel].links.find(
+          (i) => i.n === articleNumber,
+        );
+        if (found) {
+          item = found;
+          id = getVideoId(found.video_link);
+          break;
+        }
+      }
+      if (!item) throw new Error("Article not found");
+    } else {
+      // Traditional URL: ?id=VIDEO_ID
+      const params = new URLSearchParams(window.location.search);
+      id = params.get("id");
+      if (!id) throw new Error("No video ID specified");
+
+      for (const channel in linksData) {
+        const found = linksData[channel].links.find(
+          (i) => getVideoId(i.video_link) === id,
+        );
+        if (found) {
+          item = found;
+          break;
+        }
+      }
+      if (!item) throw new Error("Video not found in database");
+    }
 
     // Update Metadata
     document.title = `Loading... - رحومي`;
@@ -980,7 +1001,8 @@ async function loadArticlePage(isPagesDir) {
 
     // Setup Play Button
     const playBtn = document.getElementById("game-play-btn");
-    const redirectPrefix = isPagesDir ? "../" : "";
+    let redirectPrefix = isPagesDir ? "../" : "";
+    if (window.__shortArticleNumber) redirectPrefix = "/";
     if (enableRedirection) {
       playBtn.href = `${redirectPrefix}redirect/?id=${id}`;
     } else {
@@ -998,7 +1020,10 @@ async function loadArticlePage(isPagesDir) {
     });
 
     // Fetch Article Markdown
-    let mdPath = `../assets/articles/${id}.md?t=${new Date().getTime()}`;
+    const articlesPrefix = window.__shortArticleNumber
+      ? "/assets"
+      : "../assets";
+    let mdPath = `${articlesPrefix}/articles/${id}.md?t=${new Date().getTime()}`;
 
     try {
       const mdResponse = await fetch(mdPath);
