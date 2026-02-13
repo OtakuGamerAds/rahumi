@@ -679,8 +679,13 @@ function createMapCard(item) {
         path.includes("/article/") ||
         path.includes("/redirect/");
 
-      const target = isPagesDir ? "../article/" : "article/";
-      window.location.href = `${target}?id=${videoId}`;
+      // Use short URL if article number exists, otherwise fallback to traditional URL
+      if (item.n) {
+        window.location.href = `/a/${item.n}`;
+      } else {
+        const target = isPagesDir ? "../article/" : "article/";
+        window.location.href = `${target}?id=${videoId}`;
+      }
     };
   }
 
