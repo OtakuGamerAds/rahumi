@@ -54,6 +54,15 @@ function generateSitemap() {
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>`;
+          // Short URL entry
+          if (item.n) {
+            sitemap += `
+    <url>
+        <loc>${BASE_URL}/a/${item.n}</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>`;
+          }
           articleCount++;
         }
       });

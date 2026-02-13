@@ -12,6 +12,8 @@
         'analytics_storage': 'denied'
       });
     </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8358436770172802"
+     crossorigin="anonymous"></script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-SPEWBEZZSN"></script>
     <script>
@@ -24,12 +26,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>صفحة غير موجودة - رحومي</title>
-    <link rel="icon" href="assets/images/profile_pictures/Rahumi.jpg">
+    <link rel="icon" href="/assets/images/profile_pictures/Rahumi.jpg">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="styles/main.css?v=f4f00636">
+    <link rel="stylesheet" href="/styles/main.css?v=f4f00636">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+      // Short URL detection: /a/<number>
+      // If the path matches, flag it so main.js can handle it as an article page
+      (function() {
+        var match = window.location.pathname.match(/^\/a\/(\d+)\/?$/);
+        if (match) {
+          window.__shortArticleNumber = parseInt(match[1], 10);
+        }
+      })();
+    </script>
 </head>
 <body>
     <nav class="navbar">
@@ -54,7 +67,8 @@
       </div>
     </nav>
 
-    <main
+    <!-- 404 Content (hidden when serving an article) -->
+    <main id="not-found-content"
       class="container text-center"
       style="
         display: flex;
@@ -75,9 +89,169 @@
       </a>
     </main>
 
+    <!-- Article Content (hidden by default, shown for /a/<number> routes) -->
+    <main id="article-main" class="container" style="display: none;">
+        <div id="article-loader" style="text-align: center; padding: 4rem;">
+            <h2>جاري تحميل المقال...</h2>
+        </div>
 
+        <div id="article-view" style="display: none;">
+            <div class="article-container">
+                <div class="ad-container" id="ad-top"></div>
 
-    <script src="scripts/main.js?v=f13c8c83" defer></script>
-    <script src="scripts/consent.js"></script>
+                <!-- Video Section -->
+                <div class="video-wrapper">
+                    <iframe id="video-embed" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                </div>
+
+                <!-- Play Button -->
+                <div class="play-button-container">
+                    <a id="game-play-btn" href="#" target="_blank" class="btn play-big-btn">
+                        العب الماب الآن <img src="https://www.google.com/s2/favicons?domain=roblox.com" alt="Roblox" style="margin-right: 10px; width: 24px; height: 24px; vertical-align: middle;">
+                    </a>
+                </div>
+
+                <div class="ad-container" id="ad-video"></div>
+                <div class="ad-container" id="ad-content"></div>
+
+                <!-- Article Content -->
+                <div id="article-content" class="article-content">
+                    <!-- Markdown will be rendered here -->
+                </div>
+
+                <div class="ad-container" id="ad-bottom"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+      // If this is a short URL route, show article layout and hide 404
+      if (window.__shortArticleNumber) {
+        document.getElementById('not-found-content').style.display = 'none';
+        document.getElementById('article-main').style.display = '';
+      }
+    </script>
+
+    <script src="/scripts/title-utils.js?v=ae9a71b7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/scripts/main.js?v=f13c8c83"></script>
+    <script src="/scripts/consent.js"></script>
+
+    <style>
+        /* Article page styles (needed when 404.html serves as article page) */
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            color: var(--text-color);
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .article-content {
+            background-color: var(--surface-color);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .article-content h1, .article-content h2, .article-content h3 {
+            color: var(--primary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .article-content p {
+            margin-bottom: 1rem;
+        }
+
+        .article-content ul, .article-content ol {
+            margin-right: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .play-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .play-big-btn {
+            font-size: 1.5rem;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 480px) {
+            .play-big-btn {
+                padding: 1rem 1.5rem;
+                font-size: 1.2rem;
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        .play-big-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(46, 204, 113, 0.6);
+        }
+
+        .ad-container {
+            width: 100%;
+            margin: 0;
+            text-align: center;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 0;
+            background-color: transparent;
+            border-radius: 8px;
+            transition: margin 0.3s ease;
+        }
+
+        .ad-container:has(ins.adsbygoogle[data-ad-status="filled"]) {
+            margin: 2rem 0;
+            min-height: 100px;
+            background-color: var(--surface-color-secondary, transparent);
+        }
+
+        ins.adsbygoogle[data-ad-status="unfilled"] {
+            display: none !important;
+        }
+
+        .ad-container:has(ins.adsbygoogle[data-ad-status="unfilled"]) {
+            display: none !important;
+        }
+    </style>
 </body>
 </html>

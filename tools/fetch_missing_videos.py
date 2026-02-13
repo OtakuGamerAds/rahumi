@@ -78,6 +78,18 @@ def get_roblox_link(description):
     
     return "https://www.roblox.com"
 
+def get_max_n(data):
+    """Find the highest 'n' value across all channels."""
+    max_n = 0
+    for channel_key in data:
+        channel = data[channel_key]
+        links = channel.get('links', []) if isinstance(channel, dict) else channel
+        for link in links:
+            n = link.get('n', 0)
+            if n > max_n:
+                max_n = n
+    return max_n
+
 def fetch_and_add_missing(json_file, channel_key, channel_url):
     """Add missing videos from channel to JSON file under specific key."""
     print(f"\n{'='*60}")
@@ -119,14 +131,22 @@ def fetch_and_add_missing(json_file, channel_key, channel_url):
             
             if title:
                 roblox_link = get_roblox_link(description)
+                next_n = get_max_n(data) + 1
                 new_video = {
                     "video_link": f"https://youtu.be/{video_id}",
                     "map_name": title,  # Will be replaced by Roblox name later
-                    "map_link": roblox_link
+                    "map_link": roblox_link,
+                    "n": next_n
                 }
                 sorted_videos.append(new_video)
+                # Update data in-place so get_max_n sees the new n for subsequent videos
+                channel_obj = data.get(channel_key)
+                if isinstance(channel_obj, dict):
+                    channel_obj['links'] = sorted_videos
+                else:
+                    data[channel_key] = sorted_videos
                 added += 1
-                print(f"  Added: {title[:50]}")
+                print(f"  Added: {title[:50]} (n={next_n})")
     
     # Update data
     data[channel_key] = sorted_videos
