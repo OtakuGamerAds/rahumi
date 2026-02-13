@@ -31,6 +31,9 @@ jobs:
         run: npm ci
         # Only if we need dependencies for cache-buster, otherwise simple node run
 
+      - name: Pre-render Article Pages
+        run: node tools/prerender-articles.js
+
       - name: Run Cache Buster
         run: node tools/cache-buster.js
 

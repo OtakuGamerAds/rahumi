@@ -14,3 +14,6 @@ functions/node_modules/
 # Local Development
 credentials.json
 node_modules/
+
+# Pre-rendered article pages (generated at build time)
+src/a/
